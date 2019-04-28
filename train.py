@@ -16,7 +16,6 @@ from data_generator import AudioGenerator, categories_reversed
 from keras.callbacks import ModelCheckpoint
 from itertools import product
 
-import matplotlib.pyplot as plt
 import pickle
 import numpy as np
 

@@ -10,7 +10,7 @@ import tqdm
 import os
 
 from keras.utils import to_categorical
-from utils import extract_feature, get_label
+from utils import extract_feature, get_label, categories_reversed
 
 class AudioGenerator():
     def __init__(self, minibatch_size=20, desc_file=None, audio_config=None):
