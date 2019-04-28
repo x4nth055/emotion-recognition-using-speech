@@ -40,15 +40,19 @@ def third_model(input_shape, output_dim):
 def first_model(input_dim, output_dim, kernel_size=32):
     model = Sequential()
     model.add(Conv1D(128, input_shape=(None, input_dim), kernel_size=kernel_size, padding="same", strides=1))
-    model.add(Dropout(0.35))
+    model.add(Dropout(0.2))
     model.add(LeakyReLU(0.2))
     model.add(Conv1D(64, kernel_size=kernel_size, padding="same", strides=1))
-    model.add(Dropout(0.35))
+    model.add(Dropout(0.2))
+    model.add(LeakyReLU(0.2))
+
+    model.add(Conv1D(32, kernel_size=kernel_size, padding="same", strides=1))
+    model.add(Dropout(0.2))
     model.add(LeakyReLU(0.2))
 
     model.add(GlobalAveragePooling1D())
 
-    model.add(Dense(32))
+    model.add(Dense(16))
     model.add(Dense(output_dim, activation="softmax"))
     
     return model

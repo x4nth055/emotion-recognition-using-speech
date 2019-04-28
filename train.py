@@ -62,5 +62,5 @@ if __name__ == "__main__":
     from models import first_model
 
     model = first_model(168, len(categories_reversed))
-    train_model("first_model_v1", model, batch_size=32, epochs=100, optimizer="rmsprop")
+    train_model("first_model_v2", model, batch_size=64, epochs=100, optimizer="rmsprop")
 

@@ -130,7 +130,7 @@ audio_config = {
 }
 
 model = first_model(168, len(categories_reversed))
-model.load_weights("results/first_model_v1_0.61.h5")
+model.load_weights("results/first_model_v2_0.38.h5")
 
 for i in range(20):
     print()

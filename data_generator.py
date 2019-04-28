@@ -88,22 +88,6 @@ class AudioGenerator():
             raise Exception("Invalid partition. "
                 "Must be train/validation")
 
-    def sort_data_by_duration(self, partition):
-        """ Sort the training or validation sets by (increasing) duration
-        """
-        if partition == 'train':
-            self.train_audio_paths, self.train_durations, self.train_emotions = sort_data(
-                self.train_audio_paths, self.train_durations, self.train_emotions)
-        elif partition == 'valid':
-            self.valid_audio_paths, self.valid_durations, self.valid_emotions = sort_data(
-                self.valid_audio_paths, self.valid_durations, self.valid_emotions)
-        elif partition == "test":
-            self.test_audio_paths, self.test_durations, self.valid_emotions = sort_data(
-                self.test_audio_paths, self.test_durations, self.valid_emotions)
-        else:
-            raise Exception("Invalid partition. "
-                "Must be train/validation")
-
     def next_train(self):
         """ Obtain a batch of training data
         """
@@ -138,15 +122,11 @@ class AudioGenerator():
 
     def load_train_data(self, desc_file='train_speech.csv', shuffle=False):
         self.load_metadata_from_desc_file(desc_file, 'train')
-        if self.sort_by_duration:
-            self.sort_data_by_duration('train')
         if shuffle:
             self.shuffle_data_by_partition("train")
 
     def load_validation_data(self, desc_file='valid_speech.csv', shuffle=False):
         self.load_metadata_from_desc_file(desc_file, 'validation')
-        if self.sort_by_duration:
-            self.sort_data_by_duration('valid')
         if shuffle:
             self.shuffle_data_by_partition("valid")
 
@@ -235,17 +215,3 @@ def shuffle_data(audio_paths, emotions, features):
     features = [features[i] for i in p]
     # return audio_paths, durations, emotions
     return audio_paths, emotions, features
-
-def sort_data(audio_paths, durations, emotions):
-    """ Sort the data by duration 
-    Params:
-        audio_paths (list): Paths to audio clips
-        durations (list): Durations of utterances for each audio clip
-        emotions (list): Emotions in each audio clip
-    """
-    p = np.argsort(durations).tolist()
-    audio_paths = [audio_paths[i] for i in p]
-    durations = [durations[i] for i in p] 
-    # texts = [texts[i] for i in p]
-    emotions = [emotions[i] for i in p]
-    return audio_paths, durations, emotions
