@@ -116,6 +116,12 @@ print("Prediction:", rec.predict("data/tess_ravdess/validation/Actor_25/25_01_01
 Prediction: neutral
 Prediction: sad
 ```
+### Testing
+You can test your own voice by executing the following command:
+```
+python test.py
+```
+Wait until "Please talk" prompt is appeared, then you can start talking, and the model will automatically detects your emotion when you stop.
 ### Plotting Histograms
 This will only work if grid search is performed.
 ```python
