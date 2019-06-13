@@ -85,7 +85,8 @@ Train score: 1.0
 If you want to determine the best model you can so by retrieving the results of the GridSearchCV ( that is stored in `grid` folder ):
 
 ```python
-# loads the best estimators that was retrieved from GridSearchCV, and set the model to the best in terms of test score, and then train it
+# loads the best estimators that was retrieved from GridSearchCV,
+# and set the model to the best in terms of test score, and then train it
 rec.determine_best_model(train=True)
 print(rec.model)
 print("Test score:", rec.test_score())
