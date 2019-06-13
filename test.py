@@ -1,14 +1,15 @@
-from models import first_model
-from utils import categories_reversed, extract_feature, categories
-from sys import byteorder
-from array import array
-from struct import pack
+from utils import extract_feature
+from emotion_recognition import EmotionRecognizer
 
 import pyaudio
 import os
 import time
 import wave
 import numpy as np
+from sys import byteorder
+from array import array
+from struct import pack
+from sklearn.neural_network import MLPClassifier
 
 THRESHOLD = 500
 CHUNK_SIZE = 1024
@@ -123,25 +124,27 @@ def record_to_file(path):
 
 audio_config = {
     "mfcc": True,
-    "chroma": False,
+    "chroma": True,
     "mel": True,
     "contrast": False,
-    "tonnetz": False
+    "tonnetz": False,
 }
 
-model = first_model(168, len(categories_reversed))
-model.load_weights("results/first_model_v2_0.38.h5")
+model_params = {
+    'alpha': 0.005,
+    'batch_size': 1024,
+    'hidden_layer_sizes': (300,),
+    'learning_rate': 'adaptive',
+    'max_iter': 400
+}
 
-for i in range(20):
-    print()
-    # just to clean screen
+model = MLPClassifier(**model_params)
+detector = EmotionRecognizer(model, audio_config=audio_config)
+detector.train()
 
-while True:
-    print("Please talk")
-    record_to_file("test.wav")
-    X = extract_feature("test.wav", **audio_config)
-    X = np.expand_dims(X, axis=1)
-    X = X.reshape((1, X.shape[1], X.shape[0]))
-    print("Probs:")
-    [ print(f"\t{categories[i]}: {x*100:.2f}%") for i, x in enumerate(model.predict(X)[0]) ]
-    print(categories[model.predict_classes(X)[0]])
+if __name__ == "__main__":
+    while True:
+        print("Please talk")
+        filename = "test.wav"
+        record_to_file(filename)
+        print(detector.predict(filename))

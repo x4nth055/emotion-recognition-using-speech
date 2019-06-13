@@ -135,14 +135,16 @@ class AudioGenerator():
         if shuffle:
             self.shuffle_data_by_partition("test")
     
-    def load_metadata_from_desc_file(self, desc_file, partition):
+    def load_metadata_from_desc_file(self, desc_files, partition):
         """ Read metadata from a CSV file
         Params:
-            desc_file (str):  Path to a CSV file that contains labels and
+            desc_files (str): a list of Path to a CSV file that contains labels and
                 paths to the audio files
             partition (str): One of 'train', 'validation' or 'test'
         """
-        df = pd.read_csv(desc_file)
+        df = pd.DataFrame({'path': [], 'emotion': []})
+        for desc_file in desc_files:
+            df = pd.concat((df, pd.read_csv(desc_file)))
         print("Loading audio file paths and its corresponding labels...")
         audio_paths, emotions = list(df['path']), list(df['emotion'])
 
