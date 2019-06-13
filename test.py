@@ -9,7 +9,7 @@ import numpy as np
 from sys import byteorder
 from array import array
 from struct import pack
-from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 
 THRESHOLD = 500
 CHUNK_SIZE = 1024
@@ -130,16 +130,31 @@ audio_config = {
     "tonnetz": False,
 }
 
-model_params = {
-    'alpha': 0.005,
-    'batch_size': 1024,
-    'hidden_layer_sizes': (300,),
-    'learning_rate': 'adaptive',
-    'max_iter': 400
+model_params = {'criterion': 'friedman_mse',
+ 'init': None,
+ 'learning_rate': 0.3,
+ 'loss': 'deviance',
+ 'max_depth': 7,
+ 'max_features': None,
+ 'max_leaf_nodes': None,
+ 'min_impurity_decrease': 0.0,
+ 'min_impurity_split': None,
+ 'min_samples_leaf': 1,
+ 'min_samples_split': 2,
+ 'min_weight_fraction_leaf': 0.0,
+ 'n_estimators': 100,
+ 'n_iter_no_change': None,
+ 'presort': 'auto',
+ 'random_state': None,
+ 'subsample': 0.7,
+ 'tol': 0.0001,
+ 'validation_fraction': 0.1,
+ 'verbose': 0,
+ 'warm_start': False
 }
 
-model = MLPClassifier(**model_params)
-detector = EmotionRecognizer(model, audio_config=audio_config)
+model = GradientBoostingClassifier(**model_params)
+detector = EmotionRecognizer(model, audio_config=audio_config, verbose=0)
 detector.train()
 
 if __name__ == "__main__":
