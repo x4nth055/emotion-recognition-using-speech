@@ -61,11 +61,11 @@ python grid_search.py
 This may take several hours to complete execution, once it is finished, results are stored in `grid`.
 
 ## Example: Using 3 Emotions
-The way to build and train the best model for classifying 3 emotions is as shown below:
+The way to build and train a model for classifying 3 emotions is as shown below:
 ```python
 from emotion_recognition import EmotionRecognizer
 from sklearn.svm import SVC
-# init SVC
+# init a model, let's use SVC
 my_model = SVC()
 # pass my model to EmotionRecognizer instance
 rec = EmotionRecognizer(model=my_model, emotions=['sad', 'neutral', 'happy'], verbose=0)
