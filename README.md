@@ -82,7 +82,7 @@ Test score: 0.8148148148148148
 Train score: 1.0
 ```
 
-If you want to determine the best model you can so by retrieving the results of the GridSearchCV ( that is stored in `grid` folder ):
+In order to determine the best model, you can so by retrieving the results of the GridSearchCV ( that is stored in `grid` folder ):
 
 ```python
 # loads the best estimators that was retrieved from GridSearchCV,
