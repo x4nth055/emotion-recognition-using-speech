@@ -72,11 +72,11 @@ regression_grid_parameters = {
         'p': [1, 2, 3, 4, 5],
     },
     MLPRegressor():    {
-        'hidden_layer_sizes': [(200,), (300,), (400,)],
+        'hidden_layer_sizes': [(200,), (200, 200), (300,), (400,)],
         'alpha': [0.001, 0.005, 0.01],
-        'batch_size': [128, 256, 512, 1024],
+        'batch_size': [64, 128, 256, 512, 1024],
         'learning_rate': ['constant', 'adaptive'],
-        'max_iter': [200, 300, 400, 500]
+        'max_iter': [300, 400, 500, 600, 700]
     },
     BaggingRegressor():    {
         'n_estimators': [10, 30, 50, 60],

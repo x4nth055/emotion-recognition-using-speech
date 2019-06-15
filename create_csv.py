@@ -84,3 +84,31 @@ def write_tess_ravdess_csv(emotions=["sad", "neutral", "happy"], train_name="tra
         if verbose:
             print(f"[TESS&RAVDESS] There are {i} testing audio files for category:{category}")
     pd.DataFrame(target).to_csv(test_name)
+
+
+def write_custom_csv(emotions=['sad', 'neutral', 'happy'], train_name="train_custom.csv", test_name="test_custom.csv"):
+    categories = {
+        1: "sad",
+        2: "neutral",
+        3: "happy"
+    }
+    # delete not specified emotions
+    categories_reversed = { v: k for k, v in categories.items() }
+    for emotion, code in categories_reversed.items():
+        if emotion not in emotions:
+            del categories[code]
+    target = {"path": [], "emotion": []}
+    for code, category in categories.items():
+        for file in glob.glob(f"data/train-custom/*_{category}.wav"):
+            target["path"].append(file)
+            target["emotion"].append(category)
+    if target["path"]:
+        pd.DataFrame(target).to_csv(train_name)
+
+    target = {"path": [], "emotion": []}
+    for code, category in categories.items():
+        for file in glob.glob(f"data/test-custom/*_{category}.wav"):
+            target["path"].append(file)
+            target["emotion"].append(category)
+    if target["path"]:
+        pd.DataFrame(target).to_csv(test_name)

@@ -66,7 +66,7 @@ class AudioExtractor:
             # so naive and need to be implemented
             # in a better way
             if len(self.emotions) == 3:
-                categories = {'sad': 0, 'neutral': 1, 'happy': 2}
+                categories = {'sad': 1, 'neutral': 2, 'happy': 3}
             elif len(self.emotions) == 5:
                 categories = {'angry': 1, 'sad': 2, 'neutral': 3, 'ps': 4, 'happy': 5}
             else:

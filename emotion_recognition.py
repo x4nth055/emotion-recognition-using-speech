@@ -1,8 +1,9 @@
 from data_extractor import load_data
 from utils import extract_feature, AVAILABLE_EMOTIONS
-from create_csv import write_emodb_csv, write_tess_ravdess_csv
+from create_csv import write_emodb_csv, write_tess_ravdess_csv, write_custom_csv
 
 from sklearn.metrics import accuracy_score, make_scorer, fbeta_score, mean_squared_error, mean_absolute_error
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVC
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, RandomForestClassifier
@@ -18,13 +19,14 @@ import numpy as np
 import tqdm
 import os
 import random
+import pandas as pd
 
 
 class EmotionRecognizer:
     """A class for training, testing and predicting emotions based on
     speech's features that are extracted and fed into `sklearn` or `keras` model"""
     def __init__(self, model, emotions=["sad", "neutral", "happy"], tess_ravdess=True, emodb=True,
-                tess_ravdess_name="tess_ravdess.csv", emodb_name="emodb.csv", audio_config=None,
+                custom_db=True, tess_ravdess_name="tess_ravdess.csv", emodb_name="emodb.csv", audio_config=None,
                 classification=True, overrite_csv=True, verbose=1):
         """
         Params:
@@ -34,6 +36,8 @@ class EmotionRecognizer:
                     'neutral', 'calm', 'happy', 'sad', 'angry', 'fear', 'disgust', 'ps' ( pleasant surprised ), 'boredom'.
             tess_ravdess (bool): whether to use TESS & RAVDESS Speech datasets, default is True
             emodb (bool): whether to use EMO-DB Speech dataset, default is True,
+            custom_db (bool): whether to use custom Speech dataset that is located in `data/train-custom`
+                and `data/test-custom`, default is True
             audio_config (dict): a dictionary that indicates which speech features to use,
                 default is MFCC & Chroma & MEL spectrogram
             classification (bool): whether to use classification or regression, default is True
@@ -50,12 +54,13 @@ class EmotionRecognizer:
         # audio config
         self.audio_config = audio_config if audio_config else {'mfcc': True, 'chroma': True, 'mel': True, 'contrast': False, 'tonnetz': False}
         # datasets
-        if not tess_ravdess and not emodb:
+        if not tess_ravdess and not emodb and not custom_db:
             self.tess_ravdess = True
             self.emodb = False
         else:
             self.tess_ravdess = tess_ravdess
             self.emodb = emodb
+        self.custom_db = custom_db
 
         self.classification = classification
         self.overrite_csv = overrite_csv
@@ -82,6 +87,9 @@ class EmotionRecognizer:
         if self.emodb:
             train_desc_files.append(f"train_{self.emodb_name}")
             test_desc_files.append(f"test_{self.emodb_name}")
+        if self.custom_db:
+            train_desc_files.append("train_custom.csv")
+            test_desc_files.append("test_custom.csv")
 
         # set them to be class attributes
         self.train_desc_files = train_desc_files
@@ -114,6 +122,8 @@ class EmotionRecognizer:
                 write_tess_ravdess_csv(self.emotions, train_name=train_csv_file, test_name=test_csv_file, verbose=self.verbose)
                 if self.verbose:
                     print("[+] Writed TESS & RAVDESS CSV File")
+        if self.custom_db:
+            write_custom_csv(emotions=self.emotions)
 
     def load_data(self):
         if not self.data_loaded:
@@ -125,14 +135,14 @@ class EmotionRecognizer:
                 print("[+] Data loaded")
             self.data_loaded = True
 
-    def train(self):
+    def train(self, verbose=1):
         if not self.data_loaded:
             # if data isn't loaded yet, load it then
             self.load_data()
         if not self.model_trained:
             self.model.fit(self.X_train, self.y_train)
             self.model_trained = True
-            if self.verbose:
+            if verbose:
                 print("[+] Model trained")
 
     def predict(self, audio_path):
@@ -183,25 +193,27 @@ class EmotionRecognizer:
             detector.y_test  = self.y_test
             detector.data_loaded = True
             # train the model
-            detector.train()
+            detector.train(verbose=0)
             # get test accuracy
             accuracy = detector.test_score()
             # append to result
-            result.append((estimator, accuracy))
+            result.append((detector.model, accuracy))
 
         # sort the result
-        result = sorted(result, key=lambda item: item[1], reverse=True)
+        if self.classification:
+            result = sorted(result, key=lambda item: item[1], reverse=True)
+        else:
+            # regression, best is the lower, not the higher
+            result = sorted(result, key=lambda item: item[1], reverse=False)
         best_estimator = result[0][0]
         accuracy = result[0][1]
         self.model = best_estimator
+        self.model_trained = True
         if self.verbose:
             if self.classification:
                 print(f"[+] Best model determined: {self.model.__class__.__name__} with {accuracy*100:.3f}% test accuracy")
             else:
                 print(f"[+] Best model determined: {self.model.__class__.__name__} with {accuracy:.5f} mean absolute error")
-        if train:
-            self.model_trained = False
-            self.train()
 
     def test_score(self):
         """
@@ -235,6 +247,28 @@ class EmotionRecognizer:
         y_pred = self.model.predict(self.X_test)
         return fbeta_score(self.y_test, y_pred, beta, average='micro')
 
+    def confusion_matrix(self, percentage=True, labeled=True):
+        """Compute confusion matrix to evaluate the test accuracy of the classification"""
+        if not self.classification:
+            raise NotImplementedError("Confusion matrix works only when it is a classification problem")
+        y_pred = self.model.predict(self.X_test)
+        matrix = confusion_matrix(self.y_test, y_pred, labels=self.emotions).astype(np.float32)
+        if percentage:
+            for i in range(len(matrix)):
+                matrix[i] = matrix[i] / np.sum(matrix[i])
+            # make it percentage
+            matrix *= 100
+        if labeled:
+            matrix = pd.DataFrame(matrix, index=[ f"true_{e}" for e in self.emotions ],
+                                    columns=[ f"predicted_{e}" for e in self.emotions ])
+        return matrix
+
+    def draw_confusion_matrix(self):
+        """Calculates the confusion matrix and shows it"""
+        matrix = self.confusion_matrix(percentage=False, labeled=False)
+        pl.imshow(matrix, cmap="binary")
+        pl.show()
+
     def n_emotions(self, emotion, partition):
         """Returns number of `emotion` data samples in a particular `partition`
         ('test' or 'train')
@@ -243,6 +277,27 @@ class EmotionRecognizer:
             return len([y for y in self.y_test if y == emotion])
         elif partition == "train":
             return len([y for y in self.y_train if y == emotion])
+
+    def get_samples_by_class(self):
+        """
+        Returns all data samples count grouped by emotion (category)
+        and by partition (train/test) as well as the total
+        """
+        train_samples = []
+        test_samples = []
+        total = []
+        for emotion in self.emotions:
+            n_train = self.n_emotions(emotion, "train")
+            n_test = self.n_emotions(emotion, "test")
+            train_samples.append(n_train)
+            test_samples.append(n_test)
+            total.append(n_train + n_test)
+        
+        # get total
+        total.append(sum(train_samples) + sum(test_samples))
+        train_samples.append(sum(train_samples))
+        test_samples.append(sum(test_samples))
+        return pd.DataFrame(data={"train": train_samples, "test": test_samples, "total": total}, index=self.emotions + ["total"])
 
 
 
