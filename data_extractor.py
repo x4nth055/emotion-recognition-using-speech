@@ -153,4 +153,11 @@ def load_data(train_desc_files, test_desc_files, audio_config=None, classificati
     # Loads testing data
     audiogen.load_test_data(test_desc_files, shuffle=shuffle)
     # X_train, X_test, y_train, y_test
-    return np.array(audiogen.train_features), np.array(audiogen.test_features), np.array(audiogen.train_emotions), np.array(audiogen.test_emotions)
+    return {
+        "X_train": np.array(audiogen.train_features),
+        "X_test": np.array(audiogen.test_features),
+        "y_train": np.array(audiogen.train_emotions),
+        "y_test": np.array(audiogen.test_emotions),
+        "train_audio_paths": audiogen.train_audio_paths,
+        "test_audio_paths": audiogen.test_audio_paths
+    }

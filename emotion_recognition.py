@@ -127,10 +127,14 @@ class EmotionRecognizer:
 
     def load_data(self):
         if not self.data_loaded:
-            self.X_train, self.X_test, self.y_train, self.y_test = load_data(self.train_desc_files,
-                                                                            self.test_desc_files,
-                                                                            self.audio_config, self.classification,
-                                                                            emotions=self.emotions)
+            result = load_data(self.train_desc_files, self.test_desc_files, self.audio_config, self.classification,
+                                emotions=self.emotions)
+            self.X_train = result['X_train']
+            self.X_test = result['X_test']
+            self.y_train = result['y_train']
+            self.y_test = result['y_test']
+            self.train_audio_paths = result['train_audio_paths']
+            self.test_audio_paths = result['test_audio_paths']
             if self.verbose:
                 print("[+] Data loaded")
             self.data_loaded = True
@@ -298,6 +302,23 @@ class EmotionRecognizer:
         train_samples.append(sum(train_samples))
         test_samples.append(sum(test_samples))
         return pd.DataFrame(data={"train": train_samples, "test": test_samples, "total": total}, index=self.emotions + ["total"])
+
+    def get_random_emotion(self, emotion, partition="train"):
+        """
+        Returns random `emotion` data sample index on `partition`
+        """
+        if partition == "train":
+            index = random.choice(list(range(len(self.y_train))))
+            while self.y_train[index] != emotion:
+                index = random.choice(list(range(len(self.y_train))))
+        elif partition == "test":
+            index = random.choice(list(range(len(self.y_test))))
+            while self.y_train[index] != emotion:
+                index = random.choice(list(range(len(self.y_test))))
+        else:
+            raise TypeError("Unknown partition, only 'train' or 'test' is accepted")
+
+        return index
 
 
 
