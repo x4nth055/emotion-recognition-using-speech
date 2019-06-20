@@ -1,16 +1,17 @@
 import os
-# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# to use CPU uncomment below code
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-# import tensorflow as tf
+import tensorflow as tf
 import numpy as np
 
-# config = tf.ConfigProto(intra_op_parallelism_threads=5,
-#                         inter_op_parallelism_threads=5, 
-#                         allow_soft_placement=True,
-#                         device_count = {'CPU' : 1,
-#                                         'GPU' : 0}
-#                        )
+config = tf.ConfigProto(intra_op_parallelism_threads=5,
+                        inter_op_parallelism_threads=5, 
+                        allow_soft_placement=True,
+                        device_count = {'CPU' : 1,
+                                        'GPU' : 0}
+                       )
 from keras.layers import LSTM, GRU, Dense, Activation, LeakyReLU, Dropout
 from keras.layers import Conv1D, MaxPool1D, GlobalAveragePooling1D
 from keras.models import Sequential
@@ -235,6 +236,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         y_test = self.y_test[0]
         if self.classification:
             y_pred = self.model.predict_classes(self.X_test)[0]
+            y_test = [np.argmax(y, out=None, axis=None) for y in y_test]
             return accuracy_score(y_true=y_test, y_pred=y_pred)
         else:
             y_pred = self.model.predict(self.X_test)[0]
@@ -245,7 +247,9 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         if not self.classification:
             raise NotImplementedError("Confusion matrix works only when it is a classification problem")
         y_pred = self.model.predict_classes(self.X_test)[0]
-        matrix = confusion_matrix(self.y_test, y_pred, labels=self.emotions).astype(np.float32)
+        # invert from keras.utils.to_categorical
+        y_test = np.array([ np.argmax(y, axis=None, out=None) for y in self.y_test[0] ])
+        matrix = confusion_matrix(y_test, y_pred, labels=[self.emotions2int[e] for e in self.emotions]).astype(np.float32)
         if percentage:
             for i in range(len(matrix)):
                 matrix[i] = matrix[i] / np.sum(matrix[i])
