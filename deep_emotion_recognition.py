@@ -29,8 +29,8 @@ import pandas as pd
 
 
 class DeepEmotionRecognizer(EmotionRecognizer):
-    def __init__(self, n_cnn_layers=0, n_rnn_layers=2, n_dense_layers=1, cnn_units=128, kernel_size=11, rnn_units=128,
-                dense_units=128, tess_ravdess=True, emodb=True, custom_db=True, tess_ravdess_name="tess_ravdess.csv",
+    def __init__(self, n_rnn_layers=2, n_dense_layers=1, rnn_units=128, dense_units=128,
+                tess_ravdess=True, emodb=True, custom_db=True, tess_ravdess_name="tess_ravdess.csv",
                 emodb_name="emodb.csv", audio_config=None, classification=True, overrite_csv=True,
                 cell=LSTM, emotions=["sad", "neutral", "happy"], dropout=None, optimizer="adam",
                 loss="categorical_crossentropy", batch_size=128, epochs=1000, verbose=1):
@@ -40,10 +40,8 @@ class DeepEmotionRecognizer(EmotionRecognizer):
                         classification=classification, overrite_csv=overrite_csv)
         self.emotions = emotions
 
-        self.n_cnn_layers = n_cnn_layers
         self.n_rnn_layers = n_rnn_layers
         self.n_dense_layers = n_dense_layers
-        self.cnn_units = cnn_units
         self.rnn_units = rnn_units
         self.dense_units = dense_units
         self.cell = cell
@@ -117,17 +115,6 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             self.load_data()
         
         model = Sequential()
-
-        # # cnn layers
-        # for i in range(self.n_cnn_layers):
-        #     if i == 0:
-        #         # first layer
-        #         model.add(Conv1D(self.cnn_units))
-        #         model.add(Dropout(self.dropout[0]))
-        #     if i % 2 == 0:
-        #         model.add(MaxPool1D())
-        
-        # model.add()
 
         # rnn layers
         for i in range(self.n_rnn_layers):
@@ -242,6 +229,16 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             y_pred = self.model.predict(self.X_test)[0]
             return mean_absolute_error(y_true=y_test, y_pred=y_pred)
 
+    def train_score(self):
+        y_train = self.y_train[0]
+        if self.classification:
+            y_pred = self.model.predict_classes(self.X_train)[0]
+            y_train = [np.argmax(y, out=None, axis=None) for y in y_train]
+            return accuracy_score(y_true=y_train, y_pred=y_pred)
+        else:
+            y_pred = self.model.predict(self.X_train)[0]
+            return mean_absolute_error(y_true=y_train, y_pred=y_pred)
+
     def confusion_matrix(self, percentage=True, labeled=True):
         """Compute confusion matrix to evaluate the test accuracy of the classification"""
         if not self.classification:
@@ -260,8 +257,42 @@ class DeepEmotionRecognizer(EmotionRecognizer):
                                     columns=[ f"predicted_{e}" for e in self.emotions ])
         return matrix
 
+    def n_emotions(self, emotion, partition):
+        """Returns number of `emotion` data samples in a particular `partition`
+        ('test' or 'train')
+        """
+        if partition == "test":
+            if self.classification:
+                y_test = np.array([ np.argmax(y, axis=None, out=None)+1 for y in np.squeeze(self.y_test) ]) 
+            else:
+                y_test = np.squeeze(self.y_test)
+            return len([y for y in y_test if y == emotion])
+        elif partition == "train":
+            if self.classification:
+                y_train = np.array([ np.argmax(y, axis=None, out=None)+1 for y in np.squeeze(self.y_train) ])
+            else:
+                y_train = np.squeeze(self.y_train)
+            return len([y for y in y_train if y == emotion])
+
+    def get_samples_by_class(self):
+        train_samples = []
+        test_samples = []
+        total = []
+        for emotion in self.emotions:
+            n_train = self.n_emotions(self.emotions2int[emotion]+1, "train")
+            n_test = self.n_emotions(self.emotions2int[emotion]+1, "test")
+            train_samples.append(n_train)
+            test_samples.append(n_test)
+            total.append(n_train + n_test)
+        
+        # get total
+        total.append(sum(train_samples) + sum(test_samples))
+        train_samples.append(sum(train_samples))
+        test_samples.append(sum(test_samples))
+        return pd.DataFrame(data={"train": train_samples, "test": test_samples, "total": total}, index=self.emotions + ["total"])
+
 
 if __name__ == "__main__":
-    rec = DeepEmotionRecognizer("", n_rnn_layers=2, n_dense_layers=1, dropout=[0.35, 0.35, 0.35],
+    rec = DeepEmotionRecognizer(n_rnn_layers=2, n_dense_layers=1, dropout=[0.35, 0.35, 0.35],
                                 classification=True, verbose=2)
     rec.train()
