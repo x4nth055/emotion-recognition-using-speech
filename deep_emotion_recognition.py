@@ -31,13 +31,13 @@ import pandas as pd
 class DeepEmotionRecognizer(EmotionRecognizer):
     def __init__(self, n_rnn_layers=2, n_dense_layers=1, rnn_units=128, dense_units=128,
                 tess_ravdess=True, emodb=True, custom_db=True, tess_ravdess_name="tess_ravdess.csv",
-                emodb_name="emodb.csv", audio_config=None, classification=True, overrite_csv=True,
+                emodb_name="emodb.csv", audio_config=None, classification=True, balance=True, overrite_csv=True,
                 cell=LSTM, emotions=["sad", "neutral", "happy"], dropout=None, optimizer="adam",
                 loss="categorical_crossentropy", batch_size=128, epochs=1000, verbose=1):
         # init EmotionRecognizer
         super().__init__(None, emotions=emotions, tess_ravdess=tess_ravdess, emodb=emodb, custom_db=custom_db,
                         tess_ravdess_name=tess_ravdess_name, emodb_name=emodb_name, audio_config=audio_config,
-                        classification=classification, overrite_csv=overrite_csv)
+                        classification=classification, balance=balance, overrite_csv=overrite_csv)
         self.emotions = emotions
 
         self.n_rnn_layers = n_rnn_layers

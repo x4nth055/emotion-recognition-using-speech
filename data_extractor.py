@@ -6,13 +6,14 @@ import tqdm
 import os
 
 from utils import get_label, extract_feature, get_first_letters
+from collections import defaultdict
 
 
 class AudioExtractor:
     """A class that is used to featurize audio clips, and provide
     them to the network for training and testing"""
     def __init__(self, desc_file=None, audio_config=None, verbose=1, features_folder_name="features", classification=True,
-                    emotions=['sad', 'neutral', 'happy']):
+                    emotions=['sad', 'neutral', 'happy'], balance=True):
         """Params:
             desc_file (str, optional): Path to a csv file that contains labels and paths to the audio files.
             If provided, then load metadata right away."""
@@ -22,11 +23,20 @@ class AudioExtractor:
         self.features_folder_name = features_folder_name
         self.classification = classification
         self.emotions = emotions
+        self.balance = balance
         # input dimension
         self.input_dimension = None
 
     def _load_data(self, desc_files, partition, shuffle):
         self.load_metadata_from_desc_file(desc_files, partition)
+        # balancing the datasets ( both training or testing )
+        if partition == "train" and self.balance:
+            self.balance_training_data()
+        elif partition == "test" and self.balance:
+            self.balance_testing_data()
+        else:
+            if self.balance:
+                raise TypeError("Invalid partition, must be either train/test")
         if shuffle:
             self.shuffle_data_by_partition(partition)
 
@@ -128,6 +138,53 @@ class AudioExtractor:
         else:
             raise TypeError("Invalid partition, must be either train/test")
 
+    def balance_training_data(self):
+        count = []
+        for emotion in self.emotions:
+            count.append(len([ e for e in self.train_emotions if e == emotion]))
+        minimum = min(count)
+        if self.verbose:
+            print("[*] Balancing the dataset to the minimum value:", minimum)
+        d = defaultdict(list)
+        counter = { e: 0 for e in self.emotions }
+        for emotion, feature, audio_path in zip(self.train_emotions, self.train_features, self.train_audio_paths):
+            if counter[emotion] >= minimum:
+                # minimum value exceeded
+                continue
+            counter[emotion] += 1
+            
+            d[emotion].append((feature, audio_path))
+
+        self.train_emotions, self.train_features, self.train_audio_paths = [], [], []
+        for emotion, features_audio_paths in d.items():
+            for feature, audio_path in features_audio_paths:
+                self.train_emotions.append(emotion)
+                self.train_features.append(feature)
+                self.train_audio_paths.append(audio_path)
+
+    def balance_testing_data(self):
+        count = []
+        for emotion in self.emotions:
+            count.append(len([ e for e in self.test_emotions if e == emotion]))
+        minimum = min(count)
+        if self.verbose:
+            print("[*] Balancing the dataset to the minimum value:", minimum)
+        d = defaultdict(list)
+        counter = { e: 0 for e in self.emotions }
+        for emotion, feature, audio_path in zip(self.test_emotions, self.test_features, self.test_audio_paths):
+            if counter[emotion] >= minimum:
+                # minimum value exceeded
+                continue
+            counter[emotion] += 1
+            
+            d[emotion].append((feature, audio_path))
+
+        self.test_emotions, self.test_features, self.test_audio_paths = [], [], []
+        for emotion, features_audio_paths in d.items():
+            for feature, audio_path in features_audio_paths:
+                self.test_emotions.append(emotion)
+                self.test_features.append(feature)
+                self.test_audio_paths.append(audio_path)
     
 
 def shuffle_data(audio_paths, emotions, features):
@@ -146,8 +203,9 @@ def shuffle_data(audio_paths, emotions, features):
 
 
 def load_data(train_desc_files, test_desc_files, audio_config=None, classification=True, shuffle=True,
-                emotions=['sad', 'neutral', 'happy']):
-    audiogen = AudioExtractor(audio_config=audio_config, classification=classification, emotions=emotions, verbose=0)
+                balance=True, emotions=['sad', 'neutral', 'happy']):
+    audiogen = AudioExtractor(audio_config=audio_config, classification=classification, emotions=emotions,
+                                balance=balance, verbose=0)
     # Loads training data
     audiogen.load_train_data(train_desc_files, shuffle=shuffle)
     # Loads testing data

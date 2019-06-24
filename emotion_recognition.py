@@ -27,7 +27,7 @@ class EmotionRecognizer:
     speech's features that are extracted and fed into `sklearn` or `keras` model"""
     def __init__(self, model, emotions=["sad", "neutral", "happy"], tess_ravdess=True, emodb=True,
                 custom_db=True, tess_ravdess_name="tess_ravdess.csv", emodb_name="emodb.csv", audio_config=None,
-                classification=True, overrite_csv=True, verbose=1):
+                classification=True, balance=True, overrite_csv=True, verbose=1):
         """
         Params:
             model (sklearn model): the model used to detect emotions.
@@ -41,6 +41,7 @@ class EmotionRecognizer:
             audio_config (dict): a dictionary that indicates which speech features to use,
                 default is MFCC & Chroma & MEL spectrogram
             classification (bool): whether to use classification or regression, default is True
+            balance (bool): whether to balance the dataset ( both training and testing ), default is True
             verbose (bool/int): whether to print messages on certain tasks
         Note that when `tess_ravdess` and `emodb` are set to `False`, `tess_ravdess` will be set to True
         automatically.
@@ -63,6 +64,7 @@ class EmotionRecognizer:
         self.custom_db = custom_db
 
         self.classification = classification
+        self.balance = balance
         self.overrite_csv = overrite_csv
         self.verbose = verbose
 
@@ -128,7 +130,7 @@ class EmotionRecognizer:
     def load_data(self):
         if not self.data_loaded:
             result = load_data(self.train_desc_files, self.test_desc_files, self.audio_config, self.classification,
-                                emotions=self.emotions)
+                                emotions=self.emotions, balance=self.balance)
             self.X_train = result['X_train']
             self.X_test = result['X_test']
             self.y_train = result['y_train']
@@ -144,7 +146,7 @@ class EmotionRecognizer:
             # if data isn't loaded yet, load it then
             self.load_data()
         if not self.model_trained:
-            self.model.fit(self.X_train, self.y_train)
+            self.model.fit(X=self.X_train, y=self.y_train)
             self.model_trained = True
             if verbose:
                 print("[+] Model trained")
