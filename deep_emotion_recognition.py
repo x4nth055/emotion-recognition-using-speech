@@ -26,6 +26,7 @@ from emotion_recognition import EmotionRecognizer
 from utils import get_first_letters, AVAILABLE_EMOTIONS, extract_feature
 
 import pandas as pd
+import random
 
 
 class DeepEmotionRecognizer(EmotionRecognizer):
@@ -290,6 +291,29 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         train_samples.append(sum(train_samples))
         test_samples.append(sum(test_samples))
         return pd.DataFrame(data={"train": train_samples, "test": test_samples, "total": total}, index=self.emotions + ["total"])
+
+    def get_random_emotion(self, emotion, partition="train"):
+        """
+        Returns random `emotion` data sample index on `partition`
+        """
+        if partition == "train":
+            y_train = self.y_train[0]
+            index = random.choice(list(range(len(y_train))))
+            element = self.int2emotions[np.argmax(y_train[index])]
+            while element != emotion:
+                index = random.choice(list(range(len(y_train))))
+                element = self.int2emotions[np.argmax(y_train[index])]
+        elif partition == "test":
+            y_test = self.y_test[0]
+            index = random.choice(list(range(len(y_test))))
+            element = self.int2emotions[np.argmax(y_test[index])]
+            while element != emotion:
+                index = random.choice(list(range(len(y_test))))
+                element = self.int2emotions[np.argmax(y_test[index])]
+        else:
+            raise TypeError("Unknown partition, only 'train' or 'test' is accepted")
+
+        return index
 
 
 if __name__ == "__main__":
