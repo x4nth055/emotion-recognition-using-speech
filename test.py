@@ -9,7 +9,7 @@ import numpy as np
 from sys import byteorder
 from array import array
 from struct import pack
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import GradientBoostingClassifier, BaggingClassifier
 
 THRESHOLD = 500
 CHUNK_SIZE = 1024
@@ -130,31 +130,43 @@ audio_config = {
     "tonnetz": False,
 }
 
-model_params = {'criterion': 'friedman_mse',
- 'init': None,
- 'learning_rate': 0.3,
- 'loss': 'deviance',
- 'max_depth': 7,
- 'max_features': None,
- 'max_leaf_nodes': None,
- 'min_impurity_decrease': 0.0,
- 'min_impurity_split': None,
- 'min_samples_leaf': 1,
- 'min_samples_split': 2,
- 'min_weight_fraction_leaf': 0.0,
- 'n_estimators': 100,
- 'n_iter_no_change': None,
- 'presort': 'auto',
- 'random_state': None,
- 'subsample': 0.7,
- 'tol': 0.0001,
- 'validation_fraction': 0.1,
- 'verbose': 0,
- 'warm_start': False
-}
+# model_params = {'criterion': 'friedman_mse',
+#  'init': None,
+#  'learning_rate': 0.3,
+#  'loss': 'deviance',
+#  'max_depth': 7,
+#  'max_features': None,
+#  'max_leaf_nodes': None,
+#  'min_impurity_decrease': 0.0,
+#  'min_impurity_split': None,
+#  'min_samples_leaf': 1,
+#  'min_samples_split': 2,
+#  'min_weight_fraction_leaf': 0.0,
+#  'n_estimators': 100,
+#  'n_iter_no_change': None,
+#  'presort': 'auto',
+#  'random_state': None,
+#  'subsample': 0.7,
+#  'tol': 0.0001,
+#  'validation_fraction': 0.1,
+#  'verbose': 0,
+#  'warm_start': False
+# }
 
-model = GradientBoostingClassifier(**model_params)
-detector = EmotionRecognizer(model, audio_config=audio_config, verbose=0)
+model_params = {'base_estimator': None,
+ 'bootstrap': True,
+ 'bootstrap_features': False,
+ 'max_features': 0.5,
+ 'max_samples': 1.0,
+ 'n_estimators': 50,
+ 'n_jobs': None,
+ 'oob_score': False,
+ 'random_state': None,
+ 'verbose': 0,
+ 'warm_start': False}
+
+model = BaggingClassifier(**model_params)
+detector = EmotionRecognizer(model, emotions=['neutral', 'happy', 'sad'], audio_config=audio_config, verbose=0)
 detector.train()
 
 if __name__ == "__main__":
@@ -162,4 +174,7 @@ if __name__ == "__main__":
         print("Please talk")
         filename = "test.wav"
         record_to_file(filename)
-        print(detector.predict(filename))
+        print("Probs:")
+        result = detector.predict_proba(filename)
+        for emotion, proba in result.items():
+            print(f"\t{emotion.capitalize()}: {proba*100:.2f}%")

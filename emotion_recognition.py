@@ -155,6 +155,14 @@ class EmotionRecognizer:
         feature = extract_feature(audio_path, **self.audio_config).reshape(1, -1)
         return self.model.predict(feature)[0]
 
+    def predict_proba(self, audio_path):
+        feature = extract_feature(audio_path, **self.audio_config).reshape(1, -1)
+        proba = self.model.predict_proba(feature)[0]
+        result = {}
+        for emotion, prob in zip(self.emotions, proba):
+            result[emotion] = prob
+        return result
+
     def grid_search(self, params, n_jobs=2):
         """
         Performs GridSearchCV on `params` passed on the `self.model`
