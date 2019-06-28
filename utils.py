@@ -30,6 +30,14 @@ def get_label(audio_config):
     return label.rstrip("-")
 
 
+def get_dropout_str(dropout, n_layers=3):
+    if isinstance(dropout, list):
+        return "_".join([ str(d) for d in dropout])
+    elif isinstance(dropout, float):
+        return "_".join([ str(dropout) for i in range(n_layers) ])
+
+
+
 def get_first_letters(emotions):
     return "".join(sorted([ e[0].upper() for e in emotions ]))
 

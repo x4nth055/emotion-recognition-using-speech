@@ -23,45 +23,79 @@ from sklearn.metrics import accuracy_score, mean_absolute_error, confusion_matri
 from data_extractor import load_data
 from create_csv import write_custom_csv, write_emodb_csv, write_tess_ravdess_csv
 from emotion_recognition import EmotionRecognizer
-from utils import get_first_letters, AVAILABLE_EMOTIONS, extract_feature
+from utils import get_first_letters, AVAILABLE_EMOTIONS, extract_feature, get_dropout_str
 
 import pandas as pd
 import random
 
 
 class DeepEmotionRecognizer(EmotionRecognizer):
-    def __init__(self, n_rnn_layers=2, n_dense_layers=1, rnn_units=128, dense_units=128,
-                tess_ravdess=True, emodb=True, custom_db=True, tess_ravdess_name="tess_ravdess.csv",
-                emodb_name="emodb.csv", audio_config=None, classification=True, balance=True, overrite_csv=True,
-                cell=LSTM, emotions=["sad", "neutral", "happy"], dropout=None, optimizer="adam",
-                loss="categorical_crossentropy", batch_size=128, epochs=1000, verbose=1):
+    """
+    The Deep Learning version of the Emotion Recognizer.
+    This class uses RNN (LSTM, GRU, etc.) and Dense layers.
+    """
+    def __init__(self, **kwargs):
+        """
+        params:
+            emotions (list): list of emotions to be used. Note that these emotions must be available in
+                RAVDESS_TESS & EMODB Datasets, available nine emotions are the following:
+                    'neutral', 'calm', 'happy', 'sad', 'angry', 'fear', 'disgust', 'ps' ( pleasant surprised ), 'boredom'.
+            tess_ravdess (bool): whether to use TESS & RAVDESS Speech datasets, default is True
+            emodb (bool): whether to use EMO-DB Speech dataset, default is True,
+            custom_db (bool): whether to use custom Speech dataset that is located in `data/train-custom`
+                and `data/test-custom`, default is True
+            tess_ravdess_name (str): the name of the output CSV file for TESS&RAVDESS dataset, default is "tess_ravdess.csv"
+            emodb_name (str): the name of the output CSV file for EMO-DB dataset, default is "emodb.csv"
+            custom_db_name (str): the name of the output CSV file for the custom dataset, default is "custom.csv"
+            audio_config (dict): a dictionary that indicates which speech features to use,
+                default is MFCC, Chroma and MEL spectrogram
+            classification (bool): whether to use classification or regression, default is True
+            balance (bool): whether to balance the dataset ( both training and testing ), default is True
+            verbose (bool/int): whether to print messages on certain tasks
+            ==========================================================
+            Model params
+            n_rnn_layers (int): number of RNN layers, default is 2
+            cell (keras.layers.RNN instance): RNN cell used to train the model, default is LSTM
+            rnn_units (int): number of units of `cell`, default is 128
+            n_dense_layers (int): number of Dense layers, default is 2
+            dense_units (int): number of units of the Dense layers
+            dropout (list/float): dropout rate,
+                - if list, it indicates the dropout rate of each layer
+                - if float, it indicates the dropout rate for all layers
+                default is 0.3
+            ==========================================================
+            Training params
+            batch_size (int): number of samples per gradient update, default is 64
+            epochs (int): number of epochs, default is 1000
+            optimizer (str/keras.optimizers.Optimizer instance): optimizer used to train, default is "adam"
+            loss (str, callback from keras.losses): loss function that is used to minimize during training,
+                default is "categorical_crossentropy" for classification and "mean_squared_error" for 
+                regression
+        """
         # init EmotionRecognizer
-        super().__init__(None, emotions=emotions, tess_ravdess=tess_ravdess, emodb=emodb, custom_db=custom_db,
-                        tess_ravdess_name=tess_ravdess_name, emodb_name=emodb_name, audio_config=audio_config,
-                        classification=classification, balance=balance, overrite_csv=overrite_csv)
-        self.emotions = emotions
+        super().__init__(None, **kwargs)
 
-        self.n_rnn_layers = n_rnn_layers
-        self.n_dense_layers = n_dense_layers
-        self.rnn_units = rnn_units
-        self.dense_units = dense_units
-        self.cell = cell
+        self.n_rnn_layers = kwargs.get("n_rnn_layers", 2)
+        self.n_dense_layers = kwargs.get("n_dense_layers", 2)
+        self.rnn_units = kwargs.get("rnn_units", 128)
+        self.dense_units = kwargs.get("dense_units", 128)
+        self.cell = kwargs.get("cell", LSTM)
 
         # list of dropouts of each layer
         # must be len(dropouts) = n_rnn_layers + n_dense_layers
-        self.dropout = dropout if dropout else [0.1] * ( self.n_rnn_layers + self.n_dense_layers )
+        self.dropout = kwargs.get("dropout", 0.3)
+        self.dropout = self.dropout if isinstance(self.dropout, list) else [self.dropout] * ( self.n_rnn_layers + self.n_dense_layers )
         # number of classes ( emotions )
         self.output_dim = len(self.emotions)
 
         # optimization attributes
-        self.optimizer = optimizer
-        self.loss = loss
+        self.optimizer = kwargs.get("optimizer", "adam")
+        self.loss = kwargs.get("loss", "categorical_crossentropy")
 
         # training attributes
-        self.batch_size = batch_size
-        self.epochs = epochs
+        self.batch_size = kwargs.get("batch_size", 64)
+        self.epochs = kwargs.get("epochs", 1000)
         
-        self.verbose = verbose
         # the name of the model
         self.model_name = ""
         self._update_model_name()
@@ -79,7 +113,8 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         emotions_str = get_first_letters(self.emotions)
         # 'c' for classification & 'r' for regression
         problem_type = 'c' if self.classification else 'r'
-        self.model_name = f"{emotions_str}-{problem_type}-{self.cell.__name__}-layers-{self.n_rnn_layers}-{self.n_dense_layers}-units-{self.rnn_units}-{self.dense_units}-dropout-{'_'.join([ str(d) for d in self.dropout])}.h5"
+        dropout_str = get_dropout_str(self.dropout, n_layers=self.n_dense_layers + self.n_rnn_layers)
+        self.model_name = f"{emotions_str}-{problem_type}-{self.cell.__name__}-layers-{self.n_rnn_layers}-{self.n_dense_layers}-units-{self.rnn_units}-{self.dense_units}-dropout-{dropout_str}.h5"
 
     def _get_model_filename(self):
         """Returns the relative path of this model name"""
@@ -146,7 +181,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             model.compile(loss=self.loss, metrics=["accuracy"], optimizer=self.optimizer)
         else:
             model.add(Dense(1, activation="linear"))
-            model.compile(loss="mean_absolute_error", metrics=["mean_absolute_error"], optimizer=self.optimizer)
+            model.compile(loss="mean_squared_error", metrics=["mean_absolute_error"], optimizer=self.optimizer)
         
         self.model = model
         self.model_created = True
@@ -174,7 +209,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             self.y_train = self.y_train.reshape((1, y_train_shape[0], 1))
             self.y_test = self.y_test.reshape((1, y_test_shape[0], 1))
 
-    def train(self, override=True):
+    def train(self, override=False):
         
         # if model isn't created yet, create it
         if not self.model_created:
@@ -276,6 +311,10 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             return len([y for y in y_train if y == emotion])
 
     def get_samples_by_class(self):
+        """
+        Returns a dataframe that contains the number of training 
+        and testing samples for all emotions
+        """
         train_samples = []
         test_samples = []
         total = []
@@ -314,6 +353,10 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             raise TypeError("Unknown partition, only 'train' or 'test' is accepted")
 
         return index
+
+    def determine_best_model(self, train=True):
+        # TODO
+        raise TypeError("This method isn't supported yet for deep nn")
 
 
 if __name__ == "__main__":

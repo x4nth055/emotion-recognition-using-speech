@@ -25,9 +25,7 @@ import pandas as pd
 class EmotionRecognizer:
     """A class for training, testing and predicting emotions based on
     speech's features that are extracted and fed into `sklearn` or `keras` model"""
-    def __init__(self, model, emotions=["sad", "neutral", "happy"], tess_ravdess=True, emodb=True,
-                custom_db=True, tess_ravdess_name="tess_ravdess.csv", emodb_name="emodb.csv", audio_config=None,
-                classification=True, balance=True, overrite_csv=True, verbose=1):
+    def __init__(self, model, **kwargs):
         """
         Params:
             model (sklearn model): the model used to detect emotions.
@@ -38,38 +36,43 @@ class EmotionRecognizer:
             emodb (bool): whether to use EMO-DB Speech dataset, default is True,
             custom_db (bool): whether to use custom Speech dataset that is located in `data/train-custom`
                 and `data/test-custom`, default is True
+            tess_ravdess_name (str): the name of the output CSV file for TESS&RAVDESS dataset, default is "tess_ravdess.csv"
+            emodb_name (str): the name of the output CSV file for EMO-DB dataset, default is "emodb.csv"
+            custom_db_name (str): the name of the output CSV file for the custom dataset, default is "custom.csv"
             audio_config (dict): a dictionary that indicates which speech features to use,
-                default is MFCC & Chroma & MEL spectrogram
+                default is MFCC, Chroma and MEL spectrogram
             classification (bool): whether to use classification or regression, default is True
             balance (bool): whether to balance the dataset ( both training and testing ), default is True
-            verbose (bool/int): whether to print messages on certain tasks
-        Note that when `tess_ravdess` and `emodb` are set to `False`, `tess_ravdess` will be set to True
+            verbose (bool/int): whether to print messages on certain tasks, default is 1
+        Note that when `tess_ravdess`, `emodb` and `custom_db` are set to `False`, `tess_ravdess` will be set to True
         automatically.
         """
         # model
         self.model = model
         # emotions
-        self.emotions = emotions
+        self.emotions = kwargs.get("emotions", ["sad", "neutral", "happy"])
         # make sure that there are only available emotions
         self._verify_emotions()
         # audio config
-        self.audio_config = audio_config if audio_config else {'mfcc': True, 'chroma': True, 'mel': True, 'contrast': False, 'tonnetz': False}
+        self.audio_config = kwargs.get("audio_config", {'mfcc': True, 'chroma': True, 'mel': True, 'contrast': False, 'tonnetz': False})
         # datasets
-        if not tess_ravdess and not emodb and not custom_db:
+        self.tess_ravdess = kwargs.get("tess_ravdess", True)
+        self.emodb = kwargs.get("emodb", True)
+        self.custom_db = kwargs.get("custom_db", True)
+
+        if not self.tess_ravdess and not self.emodb and not self.custom_db:
             self.tess_ravdess = True
-            self.emodb = False
-        else:
-            self.tess_ravdess = tess_ravdess
-            self.emodb = emodb
-        self.custom_db = custom_db
+    
+        self.classification = kwargs.get("classification", True)
+        self.balance = kwargs.get("balance", True)
+        self.override_csv = kwargs.get("override_csv", True)
+        self.verbose = kwargs.get("verbose", 1)
 
-        self.classification = classification
-        self.balance = balance
-        self.overrite_csv = overrite_csv
-        self.verbose = verbose
+        self.tess_ravdess_name = kwargs.get("tess_ravdess_name", "tess_ravdess.csv")
+        self.emodb_name = kwargs.get("emodb_name", "emodb.csv")
+        self.custom_db_name = kwargs.get("custom_db_name", "custom.csv")
 
-        self.tess_ravdess_name = tess_ravdess_name
-        self.emodb_name = emodb_name
+        self.verbose = kwargs.get("verbose", 1)
 
         # set metadata path file names
         self._set_metadata_filenames()
@@ -90,14 +93,17 @@ class EmotionRecognizer:
             train_desc_files.append(f"train_{self.emodb_name}")
             test_desc_files.append(f"test_{self.emodb_name}")
         if self.custom_db:
-            train_desc_files.append("train_custom.csv")
-            test_desc_files.append("test_custom.csv")
+            train_desc_files.append(f"train_{self.custom_db_name}")
+            test_desc_files.append(f"test_{self.custom_db_name}")
 
         # set them to be class attributes
         self.train_desc_files = train_desc_files
         self.test_desc_files  = test_desc_files
 
     def _verify_emotions(self):
+        """
+        This method makes sure that emotions passed in parameters are valid.
+        """
         for emotion in self.emotions:
             assert emotion in AVAILABLE_EMOTIONS, "Emotion not recognized."
 
@@ -114,20 +120,25 @@ class EmotionRecognizer:
             # not safe approach
             if os.path.isfile(train_csv_file) and os.path.isfile(test_csv_file):
                 # file already exists, just skip writing csv files
-                if not self.overrite_csv:
+                if not self.override_csv:
                     continue
             if self.emodb_name in train_csv_file:
                 write_emodb_csv(self.emotions, train_name=train_csv_file, test_name=test_csv_file, verbose=self.verbose)
                 if self.verbose:
                     print("[+] Writed EMO-DB CSV File")
-            else:
+            elif self.tess_ravdess_name in train_csv_file:
                 write_tess_ravdess_csv(self.emotions, train_name=train_csv_file, test_name=test_csv_file, verbose=self.verbose)
                 if self.verbose:
-                    print("[+] Writed TESS & RAVDESS CSV File")
-        if self.custom_db:
-            write_custom_csv(emotions=self.emotions)
+                    print("[+] Writed TESS & RAVDESS DB CSV File")
+            elif self.custom_db_name in train_csv_file:
+                write_custom_csv(emotions=self.emotions, train_name=train_csv_file, test_name=test_csv_file)
+                if self.verbose:
+                    print("[+] Writed Custom DB CSV File")
 
     def load_data(self):
+        """
+        Loads and extracts features from the audio files for the db's specified
+        """
         if not self.data_loaded:
             result = load_data(self.train_desc_files, self.test_desc_files, self.audio_config, self.classification,
                                 emotions=self.emotions, balance=self.balance)
@@ -142,6 +153,9 @@ class EmotionRecognizer:
             self.data_loaded = True
 
     def train(self, verbose=1):
+        """
+        Train the model, if data isn't loaded, it 'll be loaded automatically
+        """
         if not self.data_loaded:
             # if data isn't loaded yet, load it then
             self.load_data()
@@ -152,10 +166,15 @@ class EmotionRecognizer:
                 print("[+] Model trained")
 
     def predict(self, audio_path):
+        """
+        given an `audio_path`, this method extracts the features
+        and predicts the emotion
+        """
         feature = extract_feature(audio_path, **self.audio_config).reshape(1, -1)
         return self.model.predict(feature)[0]
 
     def predict_proba(self, audio_path):
+        """"""
         feature = extract_feature(audio_path, **self.audio_config).reshape(1, -1)
         proba = self.model.predict_proba(feature)[0]
         result = {}
@@ -182,7 +201,7 @@ class EmotionRecognizer:
         will be ready for testing/predicting.
         In case of regression, the metric used is MSE and accuracy for classification.
         Note that the execution of this method may take several minutes due
-        to training all estimators for determining the best possible one.
+        to training all estimators (stored in `grid` folder) for determining the best possible one.
         """
         if not self.data_loaded:
             self.load_data()
@@ -199,7 +218,7 @@ class EmotionRecognizer:
             if self.verbose:
                 estimators.set_description(f"Evaluating {estimator.__class__.__name__}")
             detector = EmotionRecognizer(estimator, emotions=self.emotions, 
-                                        classification=self.classification, overrite_csv=False)
+                                        classification=self.classification, override_csv=False)
             # data already loaded
             detector.X_train = self.X_train
             detector.X_test  = self.X_test
@@ -262,7 +281,12 @@ class EmotionRecognizer:
         return fbeta_score(self.y_test, y_pred, beta, average='micro')
 
     def confusion_matrix(self, percentage=True, labeled=True):
-        """Compute confusion matrix to evaluate the test accuracy of the classification"""
+        """Compute confusion matrix to evaluate the test accuracy of the classification
+        and returns it as numpy matrix or pandas dataframe (depends on params)
+        params:
+            percentage (bool): whether to use percentage instead of number of samples, default is True
+            labeled (bool): whether to label the columns and indexes in the dataframe
+        """
         if not self.classification:
             raise NotImplementedError("Confusion matrix works only when it is a classification problem")
         y_pred = self.model.predict(self.X_test)
@@ -294,9 +318,12 @@ class EmotionRecognizer:
 
     def get_samples_by_class(self):
         """
-        Returns all data samples count grouped by emotion (category)
-        and by partition (train/test) as well as the total
+        Returns a dataframe that contains the number of training 
+        and testing samples for all emotions.
+        Note that if data isn't loaded yet, it'll be loaded
         """
+        if not self.data_loaded:
+            self.load_data()
         train_samples = []
         test_samples = []
         total = []
@@ -333,6 +360,12 @@ class EmotionRecognizer:
 
 
 def get_best_estimators(classification):
+    """
+    Loads the estimators that are pickled in `grid` folder
+    Note that if you want to use different or more estimators,
+    you can fine tune the parameters in `grid_search.py` script
+    and run it again ( may take hours )
+    """
     if classification:
         return pickle.load(open("grid/best_classifiers.pickle", "rb"))
     else:
@@ -341,7 +374,7 @@ def get_best_estimators(classification):
 
 def plot_histograms(classifiers=True, beta=0.5, n_classes=3, verbose=1):
     """
-    Loads different estimators and calculate some statistics to plot histograms.
+    Loads different estimators from `grid` folder and calculate some statistics to plot histograms.
     Params:
         classifiers (bool): if `True`, this will plot classifiers, regressors otherwise.
         beta (float): beta value for calculating fbeta score for various estimators.
@@ -409,7 +442,6 @@ def visualize(results, n_classes):
       - results: a dictionary of lists of dictionaries that contain various results on the corresponding estimator
       - n_classes: number of classes
     """
-
 
     n_estimators = len(results)
 
