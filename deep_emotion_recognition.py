@@ -1,17 +1,16 @@
 import os
 # to use CPU uncomment below code
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-import tensorflow as tf
-import numpy as np
+# import tensorflow as tf
 
-config = tf.ConfigProto(intra_op_parallelism_threads=5,
-                        inter_op_parallelism_threads=5, 
-                        allow_soft_placement=True,
-                        device_count = {'CPU' : 1,
-                                        'GPU' : 0}
-                       )
+# config = tf.ConfigProto(intra_op_parallelism_threads=5,
+#                         inter_op_parallelism_threads=5, 
+#                         allow_soft_placement=True,
+#                         device_count = {'CPU' : 1,
+#                                         'GPU' : 0}
+#                        )
 from keras.layers import LSTM, GRU, Dense, Activation, LeakyReLU, Dropout
 from keras.layers import Conv1D, MaxPool1D, GlobalAveragePooling1D
 from keras.models import Sequential
@@ -25,6 +24,7 @@ from create_csv import write_custom_csv, write_emodb_csv, write_tess_ravdess_csv
 from emotion_recognition import EmotionRecognizer
 from utils import get_first_letters, AVAILABLE_EMOTIONS, extract_feature, get_dropout_str
 
+import numpy as np
 import pandas as pd
 import random
 

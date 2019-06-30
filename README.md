@@ -26,10 +26,11 @@ This repository used 4 datasets (including this repo's custom dataset) which are
 - [**RAVDESS**](https://zenodo.org/record/1188976) : The **R**yson **A**udio-**V**isual **D**atabase of **E**motional **S**peech and **S**ong that contains 24 actors (12 male, 12 female), vocalizing two lexically-matched statements in a neutral North American accent.
 - [**TESS**](https://tspace.library.utoronto.ca/handle/1807/24487) : **T**oronto **E**motional **S**peech **S**et that was modeled on the Northwestern University Auditory Test No. 6 (NU-6; Tillman & Carhart, 1966). A set of 200 target words were spoken in the carrier phrase "Say the word _____' by two actresses (aged 26 and 64 years).
 - [**EMO-DB**](http://emodb.bilderbar.info/docu/) : As a part of the DFG funded research project SE462/3-1 in 1997 and 1999 we recorded a database of emotional utterances spoken by actors. The recordings took place in the anechoic chamber of the Technical University Berlin, department of Technical Acoustics. Director of the project was Prof. Dr. W. Sendlmeier, Technical University of Berlin, Institute of Speech and Communication, department of communication science. Members of the project were mainly Felix Burkhardt, Miriam Kienast, Astrid Paeschke and Benjamin Weiss.
-- **Custom** : Some unbalanced noisy dataset that is located in `data/train-custom` for training and `data/test-custom` for testing in which you can add/remove recording samples easily by converting the raw audio to 16000 sample rate, and mono channel (this is provided in `create_wavs.py` script in ``convert_audio(audio_path)`` method ).
+- **Custom** : Some unbalanced noisy dataset that is located in `data/train-custom` for training and `data/test-custom` for testing in which you can add/remove recording samples easily by converting the raw audio to 16000 sample rate, mono channel (this is provided in `create_wavs.py` script in ``convert_audio(audio_path)`` method ) and adding the emotion to the end of audio file name separated with '_' (e.g "20190616_125714_happy.wav" will be parsed automatically as happy)
+
 
 ### Emotions available
-So the total emotions available are "neutral", "calm", "happy" "sad", "angry", "fear", "disgust", "ps" (pleasant surprise) and "boredom".
+There are 9 emotions available: "neutral", "calm", "happy" "sad", "angry", "fear", "disgust", "ps" (pleasant surprise) and "boredom".
 ## Feature Extraction
 Feature extraction is the main part of the speech emotion recognition system. It is basically accomplished by changing the speech waveform to a form of parametric representation at a relatively lesser data rate.
 
@@ -41,7 +42,7 @@ In this repository, we have used the most used features that are available in [l
 - Tonnetz (tonal centroid features)
 
 ## Algorithms Used
-This repository can be used to build ( using sklearn ) machine learning classifiers as well as regressors for the case of 3 emotions {'sad': 0, 'neutral': 1, 'happy': 2} and the case of 5 emotions {'angry': 1, 'sad': 2, 'neutral': 3, 'ps': 4, 'happy': 5}
+This repository can be used to build machine learning classifiers as well as regressors for the case of 3 emotions {'sad': 0, 'neutral': 1, 'happy': 2} and the case of 5 emotions {'angry': 1, 'sad': 2, 'neutral': 3, 'ps': 4, 'happy': 5}
 ### Classifiers
 - SVC
 - RandomForestClassifier
@@ -49,6 +50,7 @@ This repository can be used to build ( using sklearn ) machine learning classifi
 - KNeighborsClassifier
 - MLPClassifier
 - BaggingClassifier
+- Recurrent Neural Networks (Keras)
 ### Regressors
 - SVR
 - RandomForestRegressor
@@ -56,6 +58,8 @@ This repository can be used to build ( using sklearn ) machine learning classifi
 - KNeighborsRegressor
 - MLPRegressor
 - BaggingRegressor
+- Recurrent Neural Networks (Keras)
+
 ## Grid Search
 Grid search results are already provided in `grid` folder, but if you want to tune various grid search parameters in `parameters.py`, you can run the script `grid_search.py` by:
 ```
@@ -63,7 +67,7 @@ python grid_search.py
 ```
 This may take several hours to complete execution, once it is finished, results are stored in `grid`.
 
-## Example: Using 3 Emotions
+## Example 1: Using 3 Emotions
 The way to build and train a model for classifying 3 emotions is as shown below:
 ```python
 from emotion_recognition import EmotionRecognizer
@@ -71,7 +75,8 @@ from sklearn.svm import SVC
 # init a model, let's use SVC
 my_model = SVC()
 # pass my model to EmotionRecognizer instance
-rec = EmotionRecognizer(model=my_model, emotions=['sad', 'neutral', 'happy'], verbose=0)
+# and balance the dataset
+rec = EmotionRecognizer(model=my_model, emotions=['sad', 'neutral', 'happy'], balance=True, verbose=0)
 # train the model
 rec.train()
 # check the test accuracy for that model
@@ -91,19 +96,13 @@ In order to determine the best model, you can so by retrieving the results of th
 # loads the best estimators that was retrieved from GridSearchCV,
 # and set the model to the best in terms of test score, and then train it
 rec.determine_best_model(train=True)
-print(rec.model)
+# get the determined sklearn model name
+print(rec.model.__class__.__name__)
 print("Test score:", rec.test_score())
 ```
 **Output:**
 ```
-MLPClassifier(activation='relu', alpha=0.001, batch_size=1024, beta_1=0.9,
-       beta_2=0.999, early_stopping=False, epsilon=1e-08,
-       hidden_layer_sizes=(300,), learning_rate='adaptive',
-       learning_rate_init=0.001, max_iter=500, momentum=0.9,
-       n_iter_no_change=10, nesterovs_momentum=True, power_t=0.5,
-       random_state=None, shuffle=True, solver='adam', tol=0.0001,
-       validation_fraction=0.1, verbose=False, warm_start=False)
-    
+MLPClassifier
 Test Score: 0.8958333333333334
 ```
 ### Predicting
@@ -125,7 +124,40 @@ You can test your own voice by executing the following command:
 python test.py
 ```
 Wait until "Please talk" prompt is appeared, then you can start talking, and the model will automatically detects your emotion when you stop (talking).
-### Plotting Histograms
+## Example 2: Using RNNs for 5 Emotions
+```python
+from deep_emotion_recognition import DeepEmotionRecognizer
+# initialize instance
+# inherited from emotion_recognition.EmotionRecognizer
+# default parameters (LSTM: 128x2, Dense:128x2)
+deeprec = DeepEmotionRecognizer(emotions=['angry', 'sad', 'neutral', 'ps', 'happy'], n_rnn_layers=2, n_dense_layers=2, rnn_units=128, dense_units=128)
+# train the model
+deeprec.train()
+# get the accuracy
+print(deeprec.test_score())
+# predict angry audio sample
+prediction = deeprec.predict('data/validation/Actor_10/03-02-05-02-02-02-10_angry.wav')
+print(f"Prediction: {prediction}")
+```
+**Output:**
+```
+0.7948717948717948
+Prediction: angry
+```
+### Confusion Matrix
+```python
+print(deeprec.confusion_matrix(percentage=True, labeled=True))
+```
+**Output:**
+```
+              predicted_angry  predicted_sad  predicted_neutral  predicted_ps  predicted_happy
+true_angry          92.307693       0.000000           1.282051      2.564103         3.846154
+true_sad            12.820514      67.948715           3.846154      6.410257         8.974360
+true_neutral         3.846154       8.974360          82.051285      2.564103         2.564103
+true_ps              2.564103       0.000000           1.282051     83.333328        12.820514
+true_happy          20.512821       2.564103           2.564103      2.564103        71.794876
+```
+## Plotting Histograms
 This will only work if grid search is performed.
 ```python
 from emotion_recognition import plot_histograms
