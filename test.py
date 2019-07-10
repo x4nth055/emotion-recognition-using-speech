@@ -11,6 +11,8 @@ from array import array
 from struct import pack
 from sklearn.ensemble import GradientBoostingClassifier, BaggingClassifier
 
+from utils import get_best_estimators
+
 THRESHOLD = 500
 CHUNK_SIZE = 1024
 FORMAT = pyaudio.paInt16
@@ -122,6 +124,12 @@ def record_to_file(path):
     wf.writeframes(data)
     wf.close()
 
+
+def get_estimators_name(estimators):
+    result = [ f'"{estimator.__class__.__name__}"' for estimator, _, _ in estimators ]
+    return ','.join(result), {estimator_name.strip('"'): estimator for estimator_name, (estimator, _, _) in zip(result, estimators)}
+
+
 audio_config = {
     "mfcc": True,
     "chroma": True,
@@ -130,51 +138,37 @@ audio_config = {
     "tonnetz": False,
 }
 
-# model_params = {'criterion': 'friedman_mse',
-#  'init': None,
-#  'learning_rate': 0.3,
-#  'loss': 'deviance',
-#  'max_depth': 7,
-#  'max_features': None,
-#  'max_leaf_nodes': None,
-#  'min_impurity_decrease': 0.0,
-#  'min_impurity_split': None,
-#  'min_samples_leaf': 1,
-#  'min_samples_split': 2,
-#  'min_weight_fraction_leaf': 0.0,
-#  'n_estimators': 100,
-#  'n_iter_no_change': None,
-#  'presort': 'auto',
-#  'random_state': None,
-#  'subsample': 0.7,
-#  'tol': 0.0001,
-#  'validation_fraction': 0.1,
-#  'verbose': 0,
-#  'warm_start': False
-# }
 
-model_params = {'base_estimator': None,
- 'bootstrap': True,
- 'bootstrap_features': False,
- 'max_features': 0.5,
- 'max_samples': 1.0,
- 'n_estimators': 50,
- 'n_jobs': None,
- 'oob_score': False,
- 'random_state': None,
- 'verbose': 0,
- 'warm_start': False}
-
-model = BaggingClassifier(**model_params)
-detector = EmotionRecognizer(model, emotions=['neutral', 'happy', 'sad'], audio_config=audio_config, verbose=0)
-detector.train()
 
 if __name__ == "__main__":
+    estimators = get_best_estimators(True)
+    estimators_str, estimator_dict = get_estimators_name(estimators)
+    import argparse
+    parser = argparse.ArgumentParser(description="""
+                                    Testing emotion recognition system using your voice, 
+                                    please consider changing the model and/or parameters as you wish.
+                                    """)
+    parser.add_argument("-e", "--emotions", help=
+                                            """Emotions to recognize separated by a comma ',', available emotions are
+                                            "neutral", "calm", "happy" "sad", "angry", "fear", "disgust", "ps" (pleasant surprise)
+                                            and "boredom", default is "sad,neutral,happy"
+                                            """, default="sad,neutral,happy")
+    parser.add_argument("-m", "--model", help=
+                                        f"""
+                                        The model to use, 8 models available are: {estimators_str},
+                                        default is "BaggingClassifier"
+                                        """, default="BaggingClassifier")
+
+
+    # Parse the arguments passed
+    args = parser.parse_args()
+
+    detector = EmotionRecognizer(estimator_dict[args.model], emotions=args.emotions.split(","), audio_config=audio_config, verbose=0)
+    detector.train()
+    print(f"Test accuracy score: {detector.test_score()*100:f}%")
+    print("Please talk")
     while True:
-        print("Please talk")
         filename = "test.wav"
         record_to_file(filename)
-        print("Probs:")
-        result = detector.predict_proba(filename)
-        for emotion, proba in result.items():
-            print(f"\t{emotion.capitalize()}: {proba*100:.2f}%")
+        result = detector.predict(filename)
+        print(result)

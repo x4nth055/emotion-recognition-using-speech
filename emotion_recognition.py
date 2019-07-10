@@ -12,9 +12,9 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 
-import pickle
 import matplotlib.pyplot as pl
 from time import time
+from utils import get_best_estimators
 import numpy as np
 import tqdm
 import os
@@ -356,20 +356,6 @@ class EmotionRecognizer:
             raise TypeError("Unknown partition, only 'train' or 'test' is accepted")
 
         return index
-
-
-
-def get_best_estimators(classification):
-    """
-    Loads the estimators that are pickled in `grid` folder
-    Note that if you want to use different or more estimators,
-    you can fine tune the parameters in `grid_search.py` script
-    and run it again ( may take hours )
-    """
-    if classification:
-        return pickle.load(open("grid/best_classifiers.pickle", "rb"))
-    else:
-        return pickle.load(open("grid/best_regressors.pickle", "rb"))
 
 
 def plot_histograms(classifiers=True, beta=0.5, n_classes=3, verbose=1):

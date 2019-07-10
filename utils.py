@@ -1,6 +1,7 @@
 import soundfile
 import librosa
 import numpy as np
+import pickle
 
 
 AVAILABLE_EMOTIONS = {
@@ -35,7 +36,6 @@ def get_dropout_str(dropout, n_layers=3):
         return "_".join([ str(d) for d in dropout])
     elif isinstance(dropout, float):
         return "_".join([ str(dropout) for i in range(n_layers) ])
-
 
 
 def get_first_letters(emotions):
@@ -79,3 +79,16 @@ def extract_feature(file_name, **kwargs):
             tonnetz = np.mean(librosa.feature.tonnetz(y=librosa.effects.harmonic(X), sr=sample_rate).T,axis=0)
             result = np.hstack((result, tonnetz))
     return result
+
+
+def get_best_estimators(classification):
+    """
+    Loads the estimators that are pickled in `grid` folder
+    Note that if you want to use different or more estimators,
+    you can fine tune the parameters in `grid_search.py` script
+    and run it again ( may take hours )
+    """
+    if classification:
+        return pickle.load(open("grid/best_classifiers.pickle", "rb"))
+    else:
+        return pickle.load(open("grid/best_regressors.pickle", "rb"))

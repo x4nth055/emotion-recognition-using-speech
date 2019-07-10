@@ -124,6 +124,34 @@ You can test your own voice by executing the following command:
 python test.py
 ```
 Wait until "Please talk" prompt is appeared, then you can start talking, and the model will automatically detects your emotion when you stop (talking).
+
+You can change emotions to predict, as well as models, type ``--help`` for more information.
+```
+python test.py --help
+```
+**Output:**
+```
+usage: test.py [-h] [-e EMOTIONS] [-m MODEL]
+
+Testing emotion recognition system using your voice, please consider changing
+the model and/or parameters as you wish.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -e EMOTIONS, --emotions EMOTIONS
+                        Emotions to recognize separated by a comma ',',
+                        available emotions are "neutral", "calm", "happy"
+                        "sad", "angry", "fear", "disgust", "ps" (pleasant
+                        surprise) and "boredom", default is
+                        "sad,neutral,happy"
+  -m MODEL, --model MODEL
+                        The model to use, 8 models available are: "SVC","AdaBo
+                        ostClassifier","RandomForestClassifier","GradientBoost
+                        ingClassifier","DecisionTreeClassifier","KNeighborsCla
+                        ssifier","MLPClassifier","BaggingClassifier", default
+                        is "BaggingClassifier"
+
+```
 ## Example 2: Using RNNs for 5 Emotions
 ```python
 from deep_emotion_recognition import DeepEmotionRecognizer
