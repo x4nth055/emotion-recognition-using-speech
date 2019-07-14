@@ -126,7 +126,7 @@ def record_to_file(path):
 
 
 def get_estimators_name(estimators):
-    result = [ f'"{estimator.__class__.__name__}"' for estimator, _, _ in estimators ]
+    result = [ '"{}"'.format(estimator.__class__.__name__) for estimator, _, _ in estimators ]
     return ','.join(result), {estimator_name.strip('"'): estimator for estimator_name, (estimator, _, _) in zip(result, estimators)}
 
 
@@ -154,10 +154,10 @@ if __name__ == "__main__":
                                             and "boredom", default is "sad,neutral,happy"
                                             """, default="sad,neutral,happy")
     parser.add_argument("-m", "--model", help=
-                                        f"""
-                                        The model to use, 8 models available are: {estimators_str},
+                                        """
+                                        The model to use, 8 models available are: {},
                                         default is "BaggingClassifier"
-                                        """, default="BaggingClassifier")
+                                        """.format(estimators_str), default="BaggingClassifier")
 
 
     # Parse the arguments passed
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
     detector = EmotionRecognizer(estimator_dict[args.model], emotions=args.emotions.split(","), audio_config=audio_config, verbose=0)
     detector.train()
-    print(f"Test accuracy score: {detector.test_score()*100:f}%")
+    print("Test accuracy score: {:.3f}%".format(detector.test_score()*100))
     print("Please talk")
     while True:
         filename = "test.wav"
