@@ -12,7 +12,7 @@ import pickle
 from emotion_recognition import EmotionRecognizer
 from parameters import classification_grid_parameters, regression_grid_parameters
 
-emotions = ['sad', 'neutral', 'angry']
+emotions = ['sad', 'neutral', 'happy']
 
 best_estimators = []
 

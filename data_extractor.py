@@ -76,12 +76,12 @@ class AudioExtractor:
             # so naive and need to be implemented
             # in a better way
             if len(self.emotions) == 3:
-                categories = {'sad': 1, 'neutral': 2, 'happy': 3}
+                self.categories = {'sad': 1, 'neutral': 2, 'happy': 3}
             elif len(self.emotions) == 5:
-                categories = {'angry': 1, 'sad': 2, 'neutral': 3, 'ps': 4, 'happy': 5}
+                self.categories = {'angry': 1, 'sad': 2, 'neutral': 3, 'ps': 4, 'happy': 5}
             else:
                 raise TypeError("Regression is only for either ['sad', 'neutral', 'happy'] or ['angry', 'sad', 'neutral', 'ps', 'happy']")
-            emotions = [ categories[e] for e in emotions ]
+            emotions = [ self.categories[e] for e in emotions ]
         # make features folder if does not exist
         if not os.path.isdir(self.features_folder_name):
             os.mkdir(self.features_folder_name)
@@ -138,54 +138,66 @@ class AudioExtractor:
         else:
             raise TypeError("Invalid partition, must be either train/test")
 
-    def balance_training_data(self):
+    def _balance_data(self, partition):
+        if partition == "train":
+            emotions = self.train_emotions
+            features = self.train_features
+            audio_paths = self.train_audio_paths
+        elif partition == "test":
+            emotions = self.test_emotions
+            features = self.test_features
+            audio_paths = self.test_audio_paths
+        else:
+            raise TypeError("Invalid partition, must be either train/test")
+        
         count = []
-        for emotion in self.emotions:
-            count.append(len([ e for e in self.train_emotions if e == emotion]))
+        if self.classification:
+            for emotion in self.emotions:
+                count.append(len([ e for e in emotions if e == emotion]))
+        else:
+            # regression, take actual numbers, not label emotion
+            for emotion in self.categories.values():
+                count.append(len([ e for e in emotions if e == emotion]))
+        # get the minimum data samples to balance to
         minimum = min(count)
         if self.verbose:
             print("[*] Balancing the dataset to the minimum value:", minimum)
         d = defaultdict(list)
-        counter = { e: 0 for e in self.emotions }
-        for emotion, feature, audio_path in zip(self.train_emotions, self.train_features, self.train_audio_paths):
+        if self.classification:
+            counter = {e: 0 for e in self.emotions }
+        else:
+            counter = { e: 0 for e in self.categories.values() }
+        for emotion, feature, audio_path in zip(emotions, features, audio_paths):
             if counter[emotion] >= minimum:
                 # minimum value exceeded
                 continue
             counter[emotion] += 1
-            
             d[emotion].append((feature, audio_path))
 
-        self.train_emotions, self.train_features, self.train_audio_paths = [], [], []
+        emotions, features, audio_paths = [], [], []
         for emotion, features_audio_paths in d.items():
             for feature, audio_path in features_audio_paths:
-                self.train_emotions.append(emotion)
-                self.train_features.append(feature)
-                self.train_audio_paths.append(audio_path)
+                emotions.append(emotion)
+                features.append(feature)
+                audio_paths.append(audio_path)
+        
+        if partition == "train":
+            self.train_emotions = emotions
+            self.train_features = features
+            self.train_audio_paths = audio_paths
+        elif partition == "test":
+            self.test_emotions = emotions
+            self.test_features = features
+            self.test_audio_paths = audio_paths
+        else:
+            raise TypeError("Invalid partition, must be either train/test")
+
+    def balance_training_data(self):
+        self._balance_data("train")
 
     def balance_testing_data(self):
-        count = []
-        for emotion in self.emotions:
-            count.append(len([ e for e in self.test_emotions if e == emotion]))
-        minimum = min(count)
-        if self.verbose:
-            print("[*] Balancing the dataset to the minimum value:", minimum)
-        d = defaultdict(list)
-        counter = { e: 0 for e in self.emotions }
-        for emotion, feature, audio_path in zip(self.test_emotions, self.test_features, self.test_audio_paths):
-            if counter[emotion] >= minimum:
-                # minimum value exceeded
-                continue
-            counter[emotion] += 1
-            
-            d[emotion].append((feature, audio_path))
-
-        self.test_emotions, self.test_features, self.test_audio_paths = [], [], []
-        for emotion, features_audio_paths in d.items():
-            for feature, audio_path in features_audio_paths:
-                self.test_emotions.append(emotion)
-                self.test_features.append(feature)
-                self.test_audio_paths.append(audio_path)
-    
+        self._balance_data("test")
+        
 
 def shuffle_data(audio_paths, emotions, features):
     """ Shuffle the data (called after making a complete pass through 
