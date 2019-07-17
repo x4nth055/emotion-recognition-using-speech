@@ -11,13 +11,20 @@ from collections import defaultdict
 
 class AudioExtractor:
     """A class that is used to featurize audio clips, and provide
-    them to the network for training and testing"""
-    def __init__(self, desc_file=None, audio_config=None, verbose=1, features_folder_name="features", classification=True,
+    them to the machine learning algorithms for training and testing"""
+    def __init__(self, audio_config=None, verbose=1, features_folder_name="features", classification=True,
                     emotions=['sad', 'neutral', 'happy'], balance=True):
-        """Params:
-            desc_file (str, optional): Path to a csv file that contains labels and paths to the audio files.
-            If provided, then load metadata right away."""
-        self.desc_file = desc_file
+        """
+        Params:
+            audio_config (dict): the dictionary that indicates what features to extract from the audio file,
+                default is {'mfcc': True, 'chroma': True, 'mel': True, 'contrast': False, 'tonnetz': False}
+                (i.e mfcc, chroma and mel)
+            verbose (bool/int): verbosity level, 0 for silence, 1 for info, default is 1
+            features_folder_name (str): the folder to store output features extracted, default is "features".
+            classification (bool): whether it is a classification or regression, default is True (i.e classification)
+            emotions (list): list of emotions to be extracted, default is ['sad', 'neutral', 'happy']
+            balance (bool): whether to balance dataset (both training and testing), default is True
+        """
         self.audio_config = audio_config if audio_config else {'mfcc': True, 'chroma': True, 'mel': True, 'contrast': False, 'tonnetz': False}
         self.verbose = verbose
         self.features_folder_name = features_folder_name
@@ -59,9 +66,11 @@ class AudioExtractor:
             raise TypeError("Invalid partition, must be either train/test")
 
     def load_metadata_from_desc_file(self, desc_files, partition):
-        """Read metadata from a CSV file
+        """Read metadata from a CSV file & Extract and loads features of audio files
         Params:
-            desc_files"""
+            desc_files (list): list of description files (csv files) to read from
+            partition (str): whether is "train" or "test"
+        """
         # empty dataframe
         df = pd.DataFrame({'path': [], 'emotion': []})
         for desc_file in desc_files:

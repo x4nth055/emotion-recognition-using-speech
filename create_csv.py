@@ -7,6 +7,12 @@ def write_emodb_csv(emotions=["sad", "neutral", "happy"], train_name="train_emo.
                     test_name="test_emo.csv", train_size=0.8, verbose=1):
     """
     Reads speech emodb dataset from directory and write it to a metadata CSV file.
+    params:
+        emotions (list): list of emotions to read from the folder, default is ['sad', 'neutral', 'happy']
+        train_name (str): the output csv filename for training data, default is 'train_emo.csv'
+        test_name (str): the output csv filename for testing data, default is 'test_emo.csv'
+        train_size (float): the ratio of splitting training data, default is 0.8 (80% Training data and 20% testing data)
+        verbose (int/bool): verbositiy level, 0 for silence, 1 for info, default is 1
     """
     target = {"path": [], "emotion": []}
     categories = {
@@ -50,65 +56,62 @@ def write_tess_ravdess_csv(emotions=["sad", "neutral", "happy"], train_name="tra
                             test_name="test_tess_ravdess.csv", verbose=1):
     """
     Reads speech TESS & RAVDESS datasets from directory and write it to a metadata CSV file.
+    params:
+        emotions (list): list of emotions to read from the folder, default is ['sad', 'neutral', 'happy']
+        train_name (str): the output csv filename for training data, default is 'train_tess_ravdess.csv'
+        test_name (str): the output csv filename for testing data, default is 'test_tess_ravdess.csv'
+        verbose (int/bool): verbositiy level, 0 for silence, 1 for info, default is 1
     """
-    target = {"path": [], "emotion": []}
-    categories = {
-        1: "neutral",
-        2: "calm",
-        3: "happy",
-        4: "sad",
-        5: "angry",
-        6: "fear",
-        7: "disgust",
-        8: "ps"
-    }
-    # delete not specified emotions
-    categories_reversed = { v: k for k, v in categories.items() }
-    for emotion, code in categories_reversed.items():
-        if emotion not in emotions:
-            del categories[code]
-    # for training speech directory
-    for _, category in categories.items():
+    train_target = {"path": [], "emotion": []}
+    test_target = {"path": [], "emotion": []}
+    
+    for category in emotions:
+        # for training speech directory
         for i, path in enumerate(glob.glob(f"data/training/Actor_*/*_{category}.wav")):
-            target["path"].append(path)
-            target["emotion"].append(category)
+            train_target["path"].append(path)
+            train_target["emotion"].append(category)
         if verbose:
             print(f"[TESS&RAVDESS] There are {i} training audio files for category:{category}")
-    pd.DataFrame(target).to_csv(train_name)
-    target = {"path": [], "emotion": []}
-    # for validation speech directory
-    for _, category in categories.items():
+    
+        # for validation speech directory
         for i, path in enumerate(glob.glob(f"data/validation/Actor_*/*_{category}.wav")):
-            target["path"].append(path)
-            target["emotion"].append(category)
+            test_target["path"].append(path)
+            test_target["emotion"].append(category)
         if verbose:
             print(f"[TESS&RAVDESS] There are {i} testing audio files for category:{category}")
-    pd.DataFrame(target).to_csv(test_name)
+    pd.DataFrame(test_target).to_csv(test_name)
+    pd.DataFrame(train_target).to_csv(train_name)
 
 
-def write_custom_csv(emotions=['sad', 'neutral', 'happy'], train_name="train_custom.csv", test_name="test_custom.csv"):
-    categories = {
-        1: "sad",
-        2: "neutral",
-        3: "happy"
-    }
-    # delete not specified emotions
-    categories_reversed = { v: k for k, v in categories.items() }
-    for emotion, code in categories_reversed.items():
-        if emotion not in emotions:
-            del categories[code]
-    target = {"path": [], "emotion": []}
-    for code, category in categories.items():
-        for file in glob.glob(f"data/train-custom/*_{category}.wav"):
-            target["path"].append(file)
-            target["emotion"].append(category)
-    if target["path"]:
-        pd.DataFrame(target).to_csv(train_name)
+def write_custom_csv(emotions=['sad', 'neutral', 'happy'], train_name="train_custom.csv", test_name="test_custom.csv",
+                    verbose=1):
+    """
+    Reads Custom Audio data from data/*-custom and then writes description files (csv)
+    params:
+        emotions (list): list of emotions to read from the folder, default is ['sad', 'neutral', 'happy']
+        train_name (str): the output csv filename for training data, default is 'train_custom.csv'
+        test_name (str): the output csv filename for testing data, default is 'test_custom.csv'
+        verbose (int/bool): verbositiy level, 0 for silence, 1 for info, default is 1
+    """
+    train_target = {"path": [], "emotion": []}
+    test_target = {"path": [], "emotion": []}
+    for category in emotions:
+        # train data
+        for i, file in enumerate(glob.glob(f"data/train-custom/*_{category}.wav")):
+            train_target["path"].append(file)
+            train_target["emotion"].append(category)
+        if verbose:
+            print(f"[Custom Dataset] There are {i} training audio files for category:{category}")
+        
+        # test data
+        for i, file in enumerate(glob.glob(f"data/test-custom/*_{category}.wav")):
+            test_target["path"].append(file)
+            test_target["emotion"].append(category)
+        if verbose:
+            print(f"[Custom Dataset] There are {i} testing audio files for category:{category}")
+        
+    if train_target["path"]:
+        pd.DataFrame(train_target).to_csv(train_name)
 
-    target = {"path": [], "emotion": []}
-    for code, category in categories.items():
-        for file in glob.glob(f"data/test-custom/*_{category}.wav"):
-            target["path"].append(file)
-            target["emotion"].append(category)
-    if target["path"]:
-        pd.DataFrame(target).to_csv(test_name)
+    if test_target["path"]:
+            pd.DataFrame(test_target).to_csv(test_name)

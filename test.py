@@ -1,9 +1,7 @@
-from utils import extract_feature
 from emotion_recognition import EmotionRecognizer
 
 import pyaudio
 import os
-import time
 import wave
 import numpy as np
 from sys import byteorder

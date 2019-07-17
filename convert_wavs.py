@@ -1,18 +1,24 @@
-import os
 
+
+"""
+A utility script used for converting audio samples to be 
+suitable for feature extraction
+"""
+
+import os
 
 def convert_audio(audio_path, target_path, remove=False):
     """This function sets the audio `audio_path` to:
         - 16000Hz Sampling rate
-        - one number of audio channels ( mono )
+        - one audio channel ( mono )
             Params:
                 audio_path (str): the path of audio wav file you want to convert
                 target_path (str): target path to save your new converted wav file
                 remove (bool): whether to remove the old file after converting
         Note that this function requires ffmpeg installed in your system."""
 
-    # os.system(f"ffmpeg -i {audio_path} -ac 1 -ar 16000 {target_path}")
-    os.system(f"ffmpeg -i {audio_path} -ac 1 {target_path}")
+    os.system(f"ffmpeg -i {audio_path} -ac 1 -ar 16000 {target_path}")
+    # os.system(f"ffmpeg -i {audio_path} -ac 1 {target_path}")
     if remove:
         os.remove(audio_path)
 
@@ -20,7 +26,7 @@ def convert_audio(audio_path, target_path, remove=False):
 def convert_audios(path, target_path, remove=False):
     """Converts a path of wav files to:
         - 16000Hz Sampling rate
-        - one number of audio channels ( mono )
+        - one audio channel ( mono )
         and then put them into a new folder called `target_path`
             Params:
                 audio_path (str): the path of audio wav file you want to convert
