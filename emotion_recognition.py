@@ -131,7 +131,7 @@ class EmotionRecognizer:
                 if self.verbose:
                     print("[+] Writed TESS & RAVDESS DB CSV File")
             elif self.custom_db_name in train_csv_file:
-                write_custom_csv(emotions=self.emotions, train_name=train_csv_file, test_name=test_csv_file)
+                write_custom_csv(emotions=self.emotions, train_name=train_csv_file, test_name=test_csv_file, verbose=self.verbose)
                 if self.verbose:
                     print("[+] Writed Custom DB CSV File")
 

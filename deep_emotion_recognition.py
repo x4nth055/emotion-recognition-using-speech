@@ -1,8 +1,15 @@
 import os
+# disable keras loggings
+import sys
+stderr = sys.stderr
+sys.stderr = open(os.devnull, 'w')
+import keras
+sys.stderr = stderr
 # to use CPU uncomment below code
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
+# disable tensorflow logs
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 
 config = tf.ConfigProto(intra_op_parallelism_threads=5,
@@ -58,7 +65,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             cell (keras.layers.RNN instance): RNN cell used to train the model, default is LSTM
             rnn_units (int): number of units of `cell`, default is 128
             n_dense_layers (int): number of Dense layers, default is 2
-            dense_units (int): number of units of the Dense layers
+            dense_units (int): number of units of the Dense layers, default is 128
             dropout (list/float): dropout rate,
                 - if list, it indicates the dropout rate of each layer
                 - if float, it indicates the dropout rate for all layers
@@ -360,6 +367,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
 
 
 if __name__ == "__main__":
-    rec = DeepEmotionRecognizer(n_rnn_layers=2, n_dense_layers=1, dropout=[0.35, 0.35, 0.35],
-                                classification=True, verbose=2)
-    rec.train()
+    rec = DeepEmotionRecognizer(emotions=['angry', 'sad', 'neutral', 'ps', 'happy'],
+                                epochs=300, verbose=0)
+    rec.train(override=False)
+    print("Test accuracy score:", rec.test_score() * 100, "%")
