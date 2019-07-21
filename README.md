@@ -47,7 +47,7 @@ Grid search results are already provided in `grid` folder, but if you want to tu
 ```
 python grid_search.py
 ```
-This may take several hours to complete execution, once it is finished, results are stored in `grid` folder.
+This may take several hours to complete execution, once it is finished, best estimators are stored and pickled in `grid` folder.
 
 ## Example 1: Using 3 Emotions
 The way to build and train a model for classifying 3 emotions is as shown below:
@@ -72,19 +72,20 @@ Test score: 0.8148148148148148
 Train score: 1.0
 ```
 ### Determining the best model
-In order to determine the best model, you can so by retrieving the results of the GridSearchCV ( that is stored in `grid` folder ):
+In order to determine the best model, you can by:
 
 ```python
-# loads the best estimators that was retrieved from GridSearchCV,
+# loads the best estimators from `grid` folder that was searched by GridSearchCV in `grid_search.py`,
 # and set the model to the best in terms of test score, and then train it
 rec.determine_best_model(train=True)
 # get the determined sklearn model name
-print(rec.model.__class__.__name__)
+print(rec.model.__class__.__name__, "is the best")
+# get the test accuracy score for the best estimator
 print("Test score:", rec.test_score())
 ```
 **Output:**
 ```
-MLPClassifier
+MLPClassifier is the best
 Test Score: 0.8958333333333334
 ```
 ### Predicting
