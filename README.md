@@ -42,31 +42,12 @@ In this repository, we have used the most used features that are available in [l
 - Contrast
 - Tonnetz (tonal centroid features)
 
-## Algorithms Used
-This repository can be used to build machine learning classifiers as well as regressors for the case of 3 emotions {'sad': 0, 'neutral': 1, 'happy': 2} and the case of 5 emotions {'angry': 1, 'sad': 2, 'neutral': 3, 'ps': 4, 'happy': 5}
-### Classifiers
-- SVC
-- RandomForestClassifier
-- GradientBoostingClassifier
-- KNeighborsClassifier
-- MLPClassifier
-- BaggingClassifier
-- Recurrent Neural Networks (Keras)
-### Regressors
-- SVR
-- RandomForestRegressor
-- GradientBoostingRegressor
-- KNeighborsRegressor
-- MLPRegressor
-- BaggingRegressor
-- Recurrent Neural Networks (Keras)
-
 ## Grid Search
 Grid search results are already provided in `grid` folder, but if you want to tune various grid search parameters in `parameters.py`, you can run the script `grid_search.py` by:
 ```
 python grid_search.py
 ```
-This may take several hours to complete execution, once it is finished, results are stored in `grid`.
+This may take several hours to complete execution, once it is finished, results are stored in `grid` folder.
 
 ## Example 1: Using 3 Emotions
 The way to build and train a model for classifying 3 emotions is as shown below:
@@ -119,6 +100,58 @@ print("Prediction:", rec.predict("data/tess_ravdess/validation/Actor_25/25_01_01
 Prediction: neutral
 Prediction: sad
 ```
+## Example 2: Using RNNs for 5 Emotions
+```python
+from deep_emotion_recognition import DeepEmotionRecognizer
+# initialize instance
+# inherited from emotion_recognition.EmotionRecognizer
+# default parameters (LSTM: 128x2, Dense:128x2)
+deeprec = DeepEmotionRecognizer(emotions=['angry', 'sad', 'neutral', 'ps', 'happy'], n_rnn_layers=2, n_dense_layers=2, rnn_units=128, dense_units=128)
+# train the model
+deeprec.train()
+# get the accuracy
+print(deeprec.test_score())
+# predict angry audio sample
+prediction = deeprec.predict('data/validation/Actor_10/03-02-05-02-02-02-10_angry.wav')
+print(f"Prediction: {prediction}")
+```
+**Output:**
+```
+0.7948717948717948
+Prediction: angry
+```
+### Confusion Matrix
+```python
+print(deeprec.confusion_matrix(percentage=True, labeled=True))
+```
+**Output:**
+```
+              predicted_angry  predicted_sad  predicted_neutral  predicted_ps  predicted_happy
+true_angry          92.307693       0.000000           1.282051      2.564103         3.846154
+true_sad            12.820514      67.948715           3.846154      6.410257         8.974360
+true_neutral         3.846154       8.974360          82.051285      2.564103         2.564103
+true_ps              2.564103       0.000000           1.282051     83.333328        12.820514
+true_happy          20.512821       2.564103           2.564103      2.564103        71.794876
+```
+## Algorithms Used
+This repository can be used to build machine learning classifiers as well as regressors for the case of 3 emotions {'sad': 0, 'neutral': 1, 'happy': 2} and the case of 5 emotions {'angry': 1, 'sad': 2, 'neutral': 3, 'ps': 4, 'happy': 5}
+### Classifiers
+- SVC
+- RandomForestClassifier
+- GradientBoostingClassifier
+- KNeighborsClassifier
+- MLPClassifier
+- BaggingClassifier
+- Recurrent Neural Networks (Keras)
+### Regressors
+- SVR
+- RandomForestRegressor
+- GradientBoostingRegressor
+- KNeighborsRegressor
+- MLPRegressor
+- BaggingRegressor
+- Recurrent Neural Networks (Keras)
+
 ### Testing
 You can test your own voice by executing the following command:
 ```
@@ -153,39 +186,7 @@ optional arguments:
                         is "BaggingClassifier"
 
 ```
-## Example 2: Using RNNs for 5 Emotions
-```python
-from deep_emotion_recognition import DeepEmotionRecognizer
-# initialize instance
-# inherited from emotion_recognition.EmotionRecognizer
-# default parameters (LSTM: 128x2, Dense:128x2)
-deeprec = DeepEmotionRecognizer(emotions=['angry', 'sad', 'neutral', 'ps', 'happy'], n_rnn_layers=2, n_dense_layers=2, rnn_units=128, dense_units=128)
-# train the model
-deeprec.train()
-# get the accuracy
-print(deeprec.test_score())
-# predict angry audio sample
-prediction = deeprec.predict('data/validation/Actor_10/03-02-05-02-02-02-10_angry.wav')
-print(f"Prediction: {prediction}")
-```
-**Output:**
-```
-0.7948717948717948
-Prediction: angry
-```
-### Confusion Matrix
-```python
-print(deeprec.confusion_matrix(percentage=True, labeled=True))
-```
-**Output:**
-```
-              predicted_angry  predicted_sad  predicted_neutral  predicted_ps  predicted_happy
-true_angry          92.307693       0.000000           1.282051      2.564103         3.846154
-true_sad            12.820514      67.948715           3.846154      6.410257         8.974360
-true_neutral         3.846154       8.974360          82.051285      2.564103         2.564103
-true_ps              2.564103       0.000000           1.282051     83.333328        12.820514
-true_happy          20.512821       2.564103           2.564103      2.564103        71.794876
-```
+
 ## Plotting Histograms
 This will only work if grid search is performed.
 ```python
