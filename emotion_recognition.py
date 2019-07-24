@@ -14,7 +14,7 @@ from sklearn.neural_network import MLPClassifier
 
 import matplotlib.pyplot as pl
 from time import time
-from utils import get_best_estimators
+from utils import get_best_estimators, get_audio_config
 import numpy as np
 import tqdm
 import os
@@ -39,8 +39,8 @@ class EmotionRecognizer:
             tess_ravdess_name (str): the name of the output CSV file for TESS&RAVDESS dataset, default is "tess_ravdess.csv"
             emodb_name (str): the name of the output CSV file for EMO-DB dataset, default is "emodb.csv"
             custom_db_name (str): the name of the output CSV file for the custom dataset, default is "custom.csv"
-            audio_config (dict): a dictionary that indicates which speech features to use,
-                default is MFCC, Chroma and MEL spectrogram
+            features (list): list of speech features to use, default is ["mfcc", "chroma", "mel"]
+                (i.e MFCC, Chroma and MEL spectrogram )
             classification (bool): whether to use classification or regression, default is True
             balance (bool): whether to balance the dataset ( both training and testing ), default is True
             verbose (bool/int): whether to print messages on certain tasks, default is 1
@@ -54,7 +54,8 @@ class EmotionRecognizer:
         # make sure that there are only available emotions
         self._verify_emotions()
         # audio config
-        self.audio_config = kwargs.get("audio_config", {'mfcc': True, 'chroma': True, 'mel': True, 'contrast': False, 'tonnetz': False})
+        self.features = kwargs.get("features", ["mfcc", "chroma", "mel"])
+        self.audio_config = get_audio_config(self.features)
         # datasets
         self.tess_ravdess = kwargs.get("tess_ravdess", True)
         self.emodb = kwargs.get("emodb", True)
@@ -217,8 +218,9 @@ class EmotionRecognizer:
         for estimator, params, cv_score in estimators:
             if self.verbose:
                 estimators.set_description(f"Evaluating {estimator.__class__.__name__}")
-            detector = EmotionRecognizer(estimator, emotions=self.emotions, 
-                                        classification=self.classification, override_csv=False)
+            detector = EmotionRecognizer(estimator, emotions=self.emotions, tess_ravdess=self.tess_ravdess,
+                                        emodb=self.emodb, custom_db=self.custom_db, classification=self.classification,
+                                        features=self.features, balance=self.balance, override_csv=False)
             # data already loaded
             detector.X_train = self.X_train
             detector.X_test  = self.X_test
@@ -304,6 +306,7 @@ class EmotionRecognizer:
     def draw_confusion_matrix(self):
         """Calculates the confusion matrix and shows it"""
         matrix = self.confusion_matrix(percentage=False, labeled=False)
+        #TODO: add labels, title, legends, etc.
         pl.imshow(matrix, cmap="binary")
         pl.show()
 

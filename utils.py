@@ -94,3 +94,17 @@ def get_best_estimators(classification):
         return pickle.load(open("grid/best_classifiers.pickle", "rb"))
     else:
         return pickle.load(open("grid/best_regressors.pickle", "rb"))
+
+
+def get_audio_config(features_list):
+    """
+    Converts a list of features into a dictionary understandable by
+    `data_extractor.AudioExtractor` class
+    """
+    audio_config = {'mfcc': False, 'chroma': False, 'mel': False, 'contrast': False, 'tonnetz': False}
+    for feature in features_list:
+        if feature not in audio_config:
+            raise TypeError(f"Feature passed: {feature} is not recognized.")
+        audio_config[feature] = True
+    return audio_config
+    

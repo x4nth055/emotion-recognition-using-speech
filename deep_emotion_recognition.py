@@ -54,8 +54,8 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             tess_ravdess_name (str): the name of the output CSV file for TESS&RAVDESS dataset, default is "tess_ravdess.csv"
             emodb_name (str): the name of the output CSV file for EMO-DB dataset, default is "emodb.csv"
             custom_db_name (str): the name of the output CSV file for the custom dataset, default is "custom.csv"
-            audio_config (dict): a dictionary that indicates which speech features to use,
-                default is MFCC, Chroma and MEL spectrogram
+            features (list): list of speech features to use, default is ["mfcc", "chroma", "mel"]
+                (i.e MFCC, Chroma and MEL spectrogram )
             classification (bool): whether to use classification or regression, default is True
             balance (bool): whether to balance the dataset ( both training and testing ), default is True
             verbose (bool/int): whether to print messages on certain tasks

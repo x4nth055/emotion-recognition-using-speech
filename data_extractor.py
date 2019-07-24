@@ -225,6 +225,7 @@ def shuffle_data(audio_paths, emotions, features):
 
 def load_data(train_desc_files, test_desc_files, audio_config=None, classification=True, shuffle=True,
                 balance=True, emotions=['sad', 'neutral', 'happy']):
+    # instantiate the class
     audiogen = AudioExtractor(audio_config=audio_config, classification=classification, emotions=emotions,
                                 balance=balance, verbose=0)
     # Loads training data
