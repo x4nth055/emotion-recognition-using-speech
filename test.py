@@ -3,7 +3,6 @@ from emotion_recognition import EmotionRecognizer
 import pyaudio
 import os
 import wave
-import numpy as np
 from sys import byteorder
 from array import array
 from struct import pack
@@ -128,15 +127,6 @@ def get_estimators_name(estimators):
     return ','.join(result), {estimator_name.strip('"'): estimator for estimator_name, (estimator, _, _) in zip(result, estimators)}
 
 
-audio_config = {
-    "mfcc": True,
-    "chroma": True,
-    "mel": True,
-    "contrast": False,
-    "tonnetz": False,
-}
-
-
 
 if __name__ == "__main__":
     estimators = get_best_estimators(True)
@@ -161,7 +151,8 @@ if __name__ == "__main__":
     # Parse the arguments passed
     args = parser.parse_args()
 
-    detector = EmotionRecognizer(estimator_dict[args.model], emotions=args.emotions.split(","), audio_config=audio_config, verbose=0)
+    features = ["mfcc", "chroma", "mel"]
+    detector = EmotionRecognizer(estimator_dict[args.model], emotions=args.emotions.split(","), features=features, verbose=0)
     detector.train()
     print("Test accuracy score: {:.3f}%".format(detector.test_score()*100))
     print("Please talk")

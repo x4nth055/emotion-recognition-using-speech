@@ -5,12 +5,6 @@ from create_csv import write_emodb_csv, write_tess_ravdess_csv, write_custom_csv
 from sklearn.metrics import accuracy_score, make_scorer, fbeta_score, mean_squared_error, mean_absolute_error
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV
-from sklearn.svm import SVC
-from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, RandomForestClassifier
-from sklearn.naive_bayes import BernoulliNB, GaussianNB, ComplementNB
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
 
 import matplotlib.pyplot as pl
 from time import time
