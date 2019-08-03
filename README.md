@@ -3,6 +3,7 @@
 - This repository handles building and training Speech Emotion Recognition System.
 - The basic idea behind this tool is to build and train/test a suited machine learning ( as well as deep learning ) algorithm that could recognize and detects human emotions from speech.
 - This is useful for many industry fields such as making product recommendations, affective computing, etc.
+- Check this [tutorial](https://www.thepythoncode.com/article/building-a-speech-emotion-recognizer-using-sklearn) for more information.
 ## Requirements
 - **Python 3.6+**
 ### Python Packages
