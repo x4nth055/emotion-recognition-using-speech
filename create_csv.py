@@ -100,15 +100,15 @@ def write_custom_csv(emotions=['sad', 'neutral', 'happy'], train_name="train_cus
         for i, file in enumerate(glob.glob(f"data/train-custom/*_{category}.wav")):
             train_target["path"].append(file)
             train_target["emotion"].append(category)
-        if verbose:
-            print(f"[Custom Dataset] There are {i} training audio files for category:{category}")
+        # if verbose:
+        #     print(f"[Custom Dataset] There are {i} training audio files for category:{category}")
         
         # test data
         for i, file in enumerate(glob.glob(f"data/test-custom/*_{category}.wav")):
             test_target["path"].append(file)
             test_target["emotion"].append(category)
-        if verbose:
-            print(f"[Custom Dataset] There are {i} testing audio files for category:{category}")
+        # if verbose:
+        #     print(f"[Custom Dataset] There are {i} testing audio files for category:{category}")
         
     if train_target["path"]:
         pd.DataFrame(train_target).to_csv(train_name)
