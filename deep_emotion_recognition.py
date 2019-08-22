@@ -40,6 +40,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
     """
     The Deep Learning version of the Emotion Recognizer.
     This class uses RNN (LSTM, GRU, etc.) and Dense layers.
+    #TODO add CNNs
     """
     def __init__(self, **kwargs):
         """
@@ -47,37 +48,38 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             emotions (list): list of emotions to be used. Note that these emotions must be available in
                 RAVDESS_TESS & EMODB Datasets, available nine emotions are the following:
                     'neutral', 'calm', 'happy', 'sad', 'angry', 'fear', 'disgust', 'ps' ( pleasant surprised ), 'boredom'.
-            tess_ravdess (bool): whether to use TESS & RAVDESS Speech datasets, default is True
-            emodb (bool): whether to use EMO-DB Speech dataset, default is True,
+                Default is ["sad", "neutral", "happy"].
+            tess_ravdess (bool): whether to use TESS & RAVDESS Speech datasets, default is True.
+            emodb (bool): whether to use EMO-DB Speech dataset, default is True.
             custom_db (bool): whether to use custom Speech dataset that is located in `data/train-custom`
-                and `data/test-custom`, default is True
-            tess_ravdess_name (str): the name of the output CSV file for TESS&RAVDESS dataset, default is "tess_ravdess.csv"
-            emodb_name (str): the name of the output CSV file for EMO-DB dataset, default is "emodb.csv"
-            custom_db_name (str): the name of the output CSV file for the custom dataset, default is "custom.csv"
+                and `data/test-custom`, default is True.
+            tess_ravdess_name (str): the name of the output CSV file for TESS&RAVDESS dataset, default is "tess_ravdess.csv".
+            emodb_name (str): the name of the output CSV file for EMO-DB dataset, default is "emodb.csv".
+            custom_db_name (str): the name of the output CSV file for the custom dataset, default is "custom.csv".
             features (list): list of speech features to use, default is ["mfcc", "chroma", "mel"]
-                (i.e MFCC, Chroma and MEL spectrogram )
-            classification (bool): whether to use classification or regression, default is True
-            balance (bool): whether to balance the dataset ( both training and testing ), default is True
-            verbose (bool/int): whether to print messages on certain tasks
+                (i.e MFCC, Chroma and MEL spectrogram ).
+            classification (bool): whether to use classification or regression, default is True.
+            balance (bool): whether to balance the dataset ( both training and testing ), default is True.
+            verbose (bool/int): whether to print messages on certain tasks.
             ==========================================================
             Model params
-            n_rnn_layers (int): number of RNN layers, default is 2
-            cell (keras.layers.RNN instance): RNN cell used to train the model, default is LSTM
-            rnn_units (int): number of units of `cell`, default is 128
-            n_dense_layers (int): number of Dense layers, default is 2
-            dense_units (int): number of units of the Dense layers, default is 128
+            n_rnn_layers (int): number of RNN layers, default is 2.
+            cell (keras.layers.RNN instance): RNN cell used to train the model, default is LSTM.
+            rnn_units (int): number of units of `cell`, default is 128.
+            n_dense_layers (int): number of Dense layers, default is 2.
+            dense_units (int): number of units of the Dense layers, default is 128.
             dropout (list/float): dropout rate,
-                - if list, it indicates the dropout rate of each layer
-                - if float, it indicates the dropout rate for all layers
-                default is 0.3
+                - if list, it indicates the dropout rate of each layer.
+                - if float, it indicates the dropout rate for all layers.
+                Default is 0.3.
             ==========================================================
             Training params
-            batch_size (int): number of samples per gradient update, default is 64
-            epochs (int): number of epochs, default is 1000
-            optimizer (str/keras.optimizers.Optimizer instance): optimizer used to train, default is "adam"
-            loss (str, callback from keras.losses): loss function that is used to minimize during training,
+            batch_size (int): number of samples per gradient update, default is 64.
+            epochs (int): number of epochs, default is 1000.
+            optimizer (str/keras.optimizers.Optimizer instance): optimizer used to train, default is "adam".
+            loss (str/callback from keras.losses): loss function that is used to minimize during training,
                 default is "categorical_crossentropy" for classification and "mean_squared_error" for 
-                regression
+                regression.
         """
         # init EmotionRecognizer
         super().__init__(None, **kwargs)
@@ -117,6 +119,12 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         self.model_created = False
 
     def _update_model_name(self):
+        """
+        Generates a unique model name based on parameters passed and put it on `self.model_name`.
+        This is used when saving the model.
+        """
+        # get first letters of emotions, for instance:
+        # ["sad", "neutral", "happy"] => 'HNS' (sorted alphabetically)
         emotions_str = get_first_letters(self.emotions)
         # 'c' for classification & 'r' for regression
         problem_type = 'c' if self.classification else 'r'
@@ -128,15 +136,19 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         return f"results/{self.model_name}"
 
     def _model_exists(self):
-        """Checks if model already exists in disk, returns the filename,
-        returns `None` otherwise"""
+        """
+        Checks if model already exists in disk, returns the filename,
+        and returns `None` otherwise.
+        """
         filename = self._get_model_filename()
         return filename if os.path.isfile(filename) else None
 
     def _compute_input_length(self):
+        """
+        Calculates the input shape to be able to construct the model.
+        """
         if not self.data_loaded:
             self.load_data()
-
         self.input_length = self.X_train[0].shape[1]
 
     def _verify_emotions(self):
@@ -146,9 +158,8 @@ class DeepEmotionRecognizer(EmotionRecognizer):
 
     def create_model(self):
         """
-        Constructs the neural network
+        Constructs the neural network based on parameters passed.
         """
-
         if self.model_created:
             # model already created, why call twice
             return
@@ -196,17 +207,23 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             print("[+] Model created")
 
     def load_data(self):
+        """
+        Loads and extracts features from the audio files for the db's specified.
+        And then reshapes the data.
+        """
         super().load_data()
-        # reshape to 3 dims
+        # reshape X's to 3 dims
         X_train_shape = self.X_train.shape
         X_test_shape = self.X_test.shape
         self.X_train = self.X_train.reshape((1, X_train_shape[0], X_train_shape[1]))
         self.X_test = self.X_test.reshape((1, X_test_shape[0], X_test_shape[1]))
 
         if self.classification:
+            # one-hot encode when its classification
             self.y_train = to_categorical([ self.emotions2int[str(e)] for e in self.y_train ])
             self.y_test = to_categorical([ self.emotions2int[str(e)] for e in self.y_test ])
         
+        # reshape labels
         y_train_shape = self.y_train.shape
         y_test_shape = self.y_test.shape
         if self.classification:
@@ -217,7 +234,12 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             self.y_test = self.y_test.reshape((1, y_test_shape[0], 1))
 
     def train(self, override=False):
-        
+        """
+        Trains the neural network.
+        Params:
+            override (bool): whether to override the previous identical model, can be used
+                when you changed the dataset, default is False
+        """
         # if model isn't created yet, create it
         if not self.model_created:
             self.create_model()
@@ -261,6 +283,19 @@ class DeepEmotionRecognizer(EmotionRecognizer):
             return self.int2emotions[self.model.predict_classes(feature)[0][0]]
         else:
             return self.model.predict(feature)[0][0][0]
+
+    def predict_proba(self, audio_path):
+        if self.classification:
+            feature = extract_feature(audio_path, **self.audio_config).reshape((1, 1, self.input_length))
+            proba = self.model.predict(feature)[0][0]
+            result = {}
+            for prob, emotion in zip(proba, self.emotions):
+                result[emotion] = prob
+            return result
+        else:
+            raise NotImplementedError("Probability prediction doesn't make sense for regression")
+
+
 
     def test_score(self):
         y_test = self.y_test[0]

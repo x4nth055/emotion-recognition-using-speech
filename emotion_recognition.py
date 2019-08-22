@@ -26,6 +26,7 @@ class EmotionRecognizer:
             emotions (list): list of emotions to be used. Note that these emotions must be available in
                 RAVDESS_TESS & EMODB Datasets, available nine emotions are the following:
                     'neutral', 'calm', 'happy', 'sad', 'angry', 'fear', 'disgust', 'ps' ( pleasant surprised ), 'boredom'.
+                Default is ["sad", "neutral", "happy"].
             tess_ravdess (bool): whether to use TESS & RAVDESS Speech datasets, default is True
             emodb (bool): whether to use EMO-DB Speech dataset, default is True,
             custom_db (bool): whether to use custom Speech dataset that is located in `data/train-custom`
@@ -79,7 +80,11 @@ class EmotionRecognizer:
         self.model_trained = False
 
     def _set_metadata_filenames(self):
-        # get first letters of selected emotions
+        """
+        Protected method to get all CSV (metadata) filenames into two instance attributes:
+        - `self.train_desc_files` for training CSVs
+        - `self.test_desc_files` for testing CSVs
+        """
         train_desc_files, test_desc_files = [], []
         if self.tess_ravdess:
             train_desc_files.append(f"train_{self.tess_ravdess_name}")
@@ -91,7 +96,7 @@ class EmotionRecognizer:
             train_desc_files.append(f"train_{self.custom_db_name}")
             test_desc_files.append(f"test_{self.custom_db_name}")
 
-        # set them to be class attributes
+        # set them to be object attributes
         self.train_desc_files = train_desc_files
         self.test_desc_files  = test_desc_files
 
@@ -169,13 +174,18 @@ class EmotionRecognizer:
         return self.model.predict(feature)[0]
 
     def predict_proba(self, audio_path):
-        """"""
-        feature = extract_feature(audio_path, **self.audio_config).reshape(1, -1)
-        proba = self.model.predict_proba(feature)[0]
-        result = {}
-        for emotion, prob in zip(self.emotions, proba):
-            result[emotion] = prob
-        return result
+        """
+        Predicts the probability of each emotion.
+        """
+        if self.classification:
+            feature = extract_feature(audio_path, **self.audio_config).reshape(1, -1)
+            proba = self.model.predict_proba(feature)[0]
+            result = {}
+            for emotion, prob in zip(self.emotions, proba):
+                result[emotion] = prob
+            return result
+        else:
+            raise NotImplementedError("Probability prediction doesn't make sense for regression")
 
     def grid_search(self, params, n_jobs=2):
         """
@@ -193,7 +203,7 @@ class EmotionRecognizer:
         Loads best estimators and determine which is best for test data,
         and then set it to `self.model`.
         if `train` is True, then train that model on train data, so the model
-        will be ready for testing/predicting.
+        will be ready for inference.
         In case of regression, the metric used is MSE and accuracy for classification.
         Note that the execution of this method may take several minutes due
         to training all estimators (stored in `grid` folder) for determining the best possible one.
@@ -277,11 +287,12 @@ class EmotionRecognizer:
         return fbeta_score(self.y_test, y_pred, beta, average='micro')
 
     def confusion_matrix(self, percentage=True, labeled=True):
-        """Compute confusion matrix to evaluate the test accuracy of the classification
-        and returns it as numpy matrix or pandas dataframe (depends on params)
+        """
+        Computes confusion matrix to evaluate the test accuracy of the classification
+        and returns it as numpy matrix or pandas dataframe (depends on params).
         params:
-            percentage (bool): whether to use percentage instead of number of samples, default is True
-            labeled (bool): whether to label the columns and indexes in the dataframe
+            percentage (bool): whether to use percentage instead of number of samples, default is True.
+            labeled (bool): whether to label the columns and indexes in the dataframe.
         """
         if not self.classification:
             raise NotImplementedError("Confusion matrix works only when it is a classification problem")
@@ -339,7 +350,7 @@ class EmotionRecognizer:
 
     def get_random_emotion(self, emotion, partition="train"):
         """
-        Returns random `emotion` data sample index on `partition`
+        Returns random `emotion` data sample index on `partition`.
         """
         if partition == "train":
             index = random.choice(list(range(len(self.y_train))))

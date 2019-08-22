@@ -16,7 +16,7 @@
 - **tqdm==4.28.1**
 - **matplotlib==2.2.3**
 - **pyaudio==0.2.11**
-- **[ffmpeg](https://ffmpeg.org/) (optional)**: used to add more sample audio by converting to 16000Hz sample rate and mono channel which is provided in ``convert_wavs.py``
+- **[ffmpeg](https://ffmpeg.org/) (optional)**: used if you want to add more sample audio by converting to 16000Hz sample rate and mono channel which is provided in ``convert_wavs.py``
 
 Install these libraries by the following command:
 ```
@@ -121,6 +121,14 @@ print(f"Prediction: {prediction}")
 ```
 0.7948717948717948
 Prediction: angry
+```
+Predicting probabilities is also possible (for classification ofc):
+```python
+print(deeprec.predict_proba("data/emodb/wav/15b09Fa.wav"))
+```
+**Output:**
+```
+{'sad': 0.0005244638, 'neutral': 0.0016906325, 'happy': 0.9977849}
 ```
 ### Confusion Matrix
 ```python

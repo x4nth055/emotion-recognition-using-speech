@@ -38,6 +38,8 @@ def write_emodb_csv(emotions=["sad", "neutral", "happy"], train_name="train_emo.
         target['path'].append(file)
     if verbose:
         print("[EMO-DB] Total files to write:", len(target['path']))
+        
+    # dividing training/testing sets
     n_samples = len(target['path'])
     test_size = int((1-train_size) * n_samples)
     train_size = int(train_size * n_samples)
@@ -100,18 +102,26 @@ def write_custom_csv(emotions=['sad', 'neutral', 'happy'], train_name="train_cus
         for i, file in enumerate(glob.glob(f"data/train-custom/*_{category}.wav")):
             train_target["path"].append(file)
             train_target["emotion"].append(category)
-        # if verbose:
-        #     print(f"[Custom Dataset] There are {i} training audio files for category:{category}")
+        if verbose:
+            try:
+                print(f"[Custom Dataset] There are {i} training audio files for category:{category}")
+            except NameError:
+                # in case {i} doesn't exist
+                pass
         
         # test data
         for i, file in enumerate(glob.glob(f"data/test-custom/*_{category}.wav")):
             test_target["path"].append(file)
             test_target["emotion"].append(category)
-        # if verbose:
-        #     print(f"[Custom Dataset] There are {i} testing audio files for category:{category}")
-        
+        if verbose:
+            try:
+                print(f"[Custom Dataset] There are {i} testing audio files for category:{category}")
+            except NameError:
+                pass
+    
+    # write CSVs
     if train_target["path"]:
         pd.DataFrame(train_target).to_csv(train_name)
 
     if test_target["path"]:
-            pd.DataFrame(test_target).to_csv(test_name)
+        pd.DataFrame(test_target).to_csv(test_name)
