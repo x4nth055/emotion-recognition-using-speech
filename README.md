@@ -124,11 +124,11 @@ Prediction: angry
 ```
 Predicting probabilities is also possible (for classification ofc):
 ```python
-print(deeprec.predict_proba("data/emodb/wav/15b09Fa.wav"))
+print(deeprec.predict_proba("data/emodb/wav/16a01Wb.wav"))
 ```
 **Output:**
 ```
-{'sad': 0.0005244638, 'neutral': 0.0016906325, 'happy': 0.9977849}
+{'angry': 0.8502438, 'sad': 1.15252915e-05, 'neutral': 8.986728e-05, 'ps': 0.14671412, 'happy': 0.0029406736}
 ```
 ### Confusion Matrix
 ```python
