@@ -133,7 +133,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
 
     def _get_model_filename(self):
         """Returns the relative path of this model name"""
-        return f"results/{self.model_name}"
+        return f"/erus/results/{self.model_name}"
 
     def _model_exists(self):
         """
@@ -264,7 +264,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         model_filename = self._get_model_filename()
 
         self.checkpointer = ModelCheckpoint(model_filename, save_best_only=True, verbose=1)
-        self.tensorboard = TensorBoard(log_dir=f"logs/{self.model_name}")
+        self.tensorboard = TensorBoard(log_dir=f"/erus/logs/{self.model_name}")
 
         self.history = self.model.fit(self.X_train, self.y_train,
                         batch_size=self.batch_size,
