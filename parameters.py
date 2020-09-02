@@ -32,7 +32,7 @@ classification_grid_parameters = {
         'p': [1, 2, 3, 4, 5],
     },
     MLPClassifier():    {
-        'hidden_layer_sizes': [(200,), (300,), (400,)],
+        'hidden_layer_sizes': [(200,), (300,), (400,), (128, 128), (256, 256)],
         'alpha': [0.001, 0.005, 0.01],
         'batch_size': [128, 256, 512, 1024],
         'learning_rate': ['constant', 'adaptive'],
