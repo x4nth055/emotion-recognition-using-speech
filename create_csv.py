@@ -69,18 +69,20 @@ def write_tess_ravdess_csv(emotions=["sad", "neutral", "happy"], train_name="tra
     
     for category in emotions:
         # for training speech directory
-        for i, path in enumerate(glob.glob(f"data/training/Actor_*/*_{category}.wav")):
+        total_files = glob.glob(f"data/training/Actor_*/*_{category}.wav")
+        for i, path in enumerate(total_files):
             train_target["path"].append(path)
             train_target["emotion"].append(category)
-        if verbose:
-            print(f"[TESS&RAVDESS] There are {i} training audio files for category:{category}")
+        if verbose and total_files:
+            print(f"[TESS&RAVDESS] There are {len(total_files)} training audio files for category:{category}")
     
         # for validation speech directory
-        for i, path in enumerate(glob.glob(f"data/validation/Actor_*/*_{category}.wav")):
+        total_files = glob.glob(f"data/validation/Actor_*/*_{category}.wav")
+        for i, path in enumerate(total_files):
             test_target["path"].append(path)
             test_target["emotion"].append(category)
-        if verbose:
-            print(f"[TESS&RAVDESS] There are {i} testing audio files for category:{category}")
+        if verbose and total_files:
+            print(f"[TESS&RAVDESS] There are {len(total_files)} testing audio files for category:{category}")
     pd.DataFrame(test_target).to_csv(test_name)
     pd.DataFrame(train_target).to_csv(train_name)
 
