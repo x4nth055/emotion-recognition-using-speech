@@ -148,6 +148,7 @@ class EmotionRecognizer:
             self.y_test = result['y_test']
             self.train_audio_paths = result['train_audio_paths']
             self.test_audio_paths = result['test_audio_paths']
+            self.balance = result["balance"]
             if self.verbose:
                 print("[+] Data loaded")
             self.data_loaded = True
@@ -187,14 +188,14 @@ class EmotionRecognizer:
         else:
             raise NotImplementedError("Probability prediction doesn't make sense for regression")
 
-    def grid_search(self, params, n_jobs=2):
+    def grid_search(self, params, n_jobs=2, verbose=1):
         """
         Performs GridSearchCV on `params` passed on the `self.model`
         And returns the tuple: (best_estimator, best_params, best_score).
         """
         score = accuracy_score if self.classification else mean_absolute_error
         grid = GridSearchCV(estimator=self.model, param_grid=params, scoring=make_scorer(score),
-                            n_jobs=n_jobs, verbose=1, cv=3)
+                            n_jobs=n_jobs, verbose=verbose, cv=3)
         grid_result = grid.fit(self.X_train, self.y_train)
         return grid_result.best_estimator_, grid_result.best_params_, grid_result.best_score_
 

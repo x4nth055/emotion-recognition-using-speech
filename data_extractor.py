@@ -169,6 +169,11 @@ class AudioExtractor:
                 count.append(len([ e for e in emotions if e == emotion]))
         # get the minimum data samples to balance to
         minimum = min(count)
+        if minimum == 0:
+            # won't balance, otherwise 0 samples will be loaded
+            print("[!] One class has 0 samples, setting balance to False")
+            self.balance = False
+            return
         if self.verbose:
             print("[*] Balancing the dataset to the minimum value:", minimum)
         d = defaultdict(list)
@@ -239,5 +244,6 @@ def load_data(train_desc_files, test_desc_files, audio_config=None, classificati
         "y_train": np.array(audiogen.train_emotions),
         "y_test": np.array(audiogen.test_emotions),
         "train_audio_paths": audiogen.train_audio_paths,
-        "test_audio_paths": audiogen.test_audio_paths
+        "test_audio_paths": audiogen.test_audio_paths,
+        "balance": audiogen.balance,
     }
