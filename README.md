@@ -7,6 +7,7 @@
 ## Requirements
 - **Python 3.6+**
 ### Python Packages
+- **tensorflow==2.0.2**
 - **librosa==0.6.3**
 - **numpy**
 - **pandas**
