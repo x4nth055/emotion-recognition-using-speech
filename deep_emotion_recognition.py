@@ -3,26 +3,13 @@ import os
 import sys
 stderr = sys.stderr
 sys.stderr = open(os.devnull, 'w')
-import keras
-sys.stderr = stderr
-# to use CPU uncomment below code
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-# disable tensorflow logs
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 
-config = tf.ConfigProto(intra_op_parallelism_threads=5,
-                        inter_op_parallelism_threads=5, 
-                        allow_soft_placement=True,
-                        device_count = {'CPU' : 1,
-                                        'GPU' : 0}
-                       )
-from keras.layers import LSTM, GRU, Dense, Activation, LeakyReLU, Dropout
-from keras.layers import Conv1D, MaxPool1D, GlobalAveragePooling1D
-from keras.models import Sequential
-from keras.callbacks import ModelCheckpoint, TensorBoard
-from keras.utils import to_categorical
+from tensorflow.keras.layers import LSTM, GRU, Dense, Activation, LeakyReLU, Dropout
+from tensorflow.keras.layers import Conv1D, MaxPool1D, GlobalAveragePooling1D
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
+from tensorflow.keras.utils import to_categorical
 
 from sklearn.metrics import accuracy_score, mean_absolute_error, confusion_matrix
 
@@ -264,7 +251,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         model_filename = self._get_model_filename()
 
         self.checkpointer = ModelCheckpoint(model_filename, save_best_only=True, verbose=1)
-        self.tensorboard = TensorBoard(log_dir=f"logs/{self.model_name}")
+        self.tensorboard = TensorBoard(log_dir=os.path.join("logs", self.model_name))
 
         self.history = self.model.fit(self.X_train, self.y_train,
                         batch_size=self.batch_size,
