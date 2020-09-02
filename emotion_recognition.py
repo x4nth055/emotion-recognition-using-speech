@@ -182,7 +182,7 @@ class EmotionRecognizer:
             feature = extract_feature(audio_path, **self.audio_config).reshape(1, -1)
             proba = self.model.predict_proba(feature)[0]
             result = {}
-            for emotion, prob in zip(self.emotions, proba):
+            for emotion, prob in zip(self.model.classes_, proba):
                 result[emotion] = prob
             return result
         else:
