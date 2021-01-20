@@ -198,6 +198,7 @@ optional arguments:
 ```
 
 ## Plotting Histograms
+
 This will only work if grid search is performed.
 ```python
 from emotion_recognition import plot_histograms
