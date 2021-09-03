@@ -7,4 +7,4 @@ sklearn
 tqdm==4.28.1
 matplotlib==2.2.3
 pyaudio==0.2.11
-tensorflow==2.4.0
+tensorflow==2.5.1
