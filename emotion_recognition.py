@@ -199,12 +199,10 @@ class EmotionRecognizer:
         grid_result = grid.fit(self.X_train, self.y_train)
         return grid_result.best_estimator_, grid_result.best_params_, grid_result.best_score_
 
-    def determine_best_model(self, train=True):
+    def determine_best_model(self):
         """
         Loads best estimators and determine which is best for test data,
         and then set it to `self.model`.
-        if `train` is True, then train that model on train data, so the model
-        will be ready for inference.
         In case of regression, the metric used is MSE and accuracy for classification.
         Note that the execution of this method may take several minutes due
         to training all estimators (stored in `grid` folder) for determining the best possible one.
@@ -240,11 +238,9 @@ class EmotionRecognizer:
             result.append((detector.model, accuracy))
 
         # sort the result
-        if self.classification:
-            result = sorted(result, key=lambda item: item[1], reverse=True)
-        else:
-            # regression, best is the lower, not the higher
-            result = sorted(result, key=lambda item: item[1], reverse=False)
+        # regression: best is the lower, not the higher
+        # classification: best is higher, not the lower
+        result = sorted(result, key=lambda item: item[1], reverse=self.classification)
         best_estimator = result[0][0]
         accuracy = result[0][1]
         self.model = best_estimator
