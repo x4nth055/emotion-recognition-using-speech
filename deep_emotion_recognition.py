@@ -90,7 +90,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
 
         # training attributes
         self.batch_size = kwargs.get("batch_size", 64)
-        self.epochs = kwargs.get("epochs", 1000)
+        self.epochs = kwargs.get("epochs", 500)
         
         # the name of the model
         self.model_name = ""
