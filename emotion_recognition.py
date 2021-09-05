@@ -19,10 +19,11 @@ import pandas as pd
 class EmotionRecognizer:
     """A class for training, testing and predicting emotions based on
     speech's features that are extracted and fed into `sklearn` or `keras` model"""
-    def __init__(self, model, **kwargs):
+    def __init__(self, model=None, **kwargs):
         """
         Params:
-            model (sklearn model): the model used to detect emotions.
+            model (sklearn model): the model used to detect emotions. If `model` is None, then self.determine_best_model()
+                will be automatically called
             emotions (list): list of emotions to be used. Note that these emotions must be available in
                 RAVDESS_TESS & EMODB Datasets, available nine emotions are the following:
                     'neutral', 'calm', 'happy', 'sad', 'angry', 'fear', 'disgust', 'ps' ( pleasant surprised ), 'boredom'.
@@ -42,8 +43,6 @@ class EmotionRecognizer:
         Note that when `tess_ravdess`, `emodb` and `custom_db` are set to `False`, `tess_ravdess` will be set to True
         automatically.
         """
-        # model
-        self.model = model
         # emotions
         self.emotions = kwargs.get("emotions", ["sad", "neutral", "happy"])
         # make sure that there are only available emotions
@@ -78,6 +77,12 @@ class EmotionRecognizer:
         # boolean attributes
         self.data_loaded = False
         self.model_trained = False
+
+        # model
+        if not model:
+            self.determine_best_model()
+        else:
+            self.model = model
 
     def _set_metadata_filenames(self):
         """
