@@ -322,8 +322,8 @@ class DeepEmotionRecognizer(EmotionRecognizer):
                                     columns=[ f"predicted_{e}" for e in self.emotions ])
         return matrix
 
-    def n_emotions(self, emotion, partition):
-        """Returns number of `emotion` data samples in a particular `partition`
+    def get_n_samples(self, emotion, partition):
+        """Returns number data samples of the `emotion` class in a particular `partition`
         ('test' or 'train')
         """
         if partition == "test":
@@ -348,8 +348,8 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         test_samples = []
         total = []
         for emotion in self.emotions:
-            n_train = self.n_emotions(self.emotions2int[emotion]+1, "train")
-            n_test = self.n_emotions(self.emotions2int[emotion]+1, "test")
+            n_train = self.get_n_samples(self.emotions2int[emotion]+1, "train")
+            n_test = self.get_n_samples(self.emotions2int[emotion]+1, "test")
             train_samples.append(n_train)
             test_samples.append(n_test)
             total.append(n_train + n_test)
