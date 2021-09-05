@@ -2,6 +2,8 @@ import soundfile
 import librosa
 import numpy as np
 import pickle
+import os
+from convert_wavs import convert_audio
 
 
 AVAILABLE_EMOTIONS = {
@@ -59,7 +61,23 @@ def extract_feature(file_name, **kwargs):
     mel = kwargs.get("mel")
     contrast = kwargs.get("contrast")
     tonnetz = kwargs.get("tonnetz")
-    with soundfile.SoundFile(file_name) as sound_file:
+    try:
+        with soundfile.SoundFile(file_name) as sound_file:
+            pass
+    except RuntimeError:
+        # not properly formated, convert to 16000 sample rate & mono channel using ffmpeg
+        # get the basename
+        basename = os.path.basename(file_name)
+        dirname  = os.path.dirname(file_name)
+        name, ext = os.path.splitext(basename)
+        new_basename = f"{name}_c.wav"
+        new_filename = os.path.join(dirname, new_basename)
+        v = convert_audio(file_name, new_filename)
+        if v:
+            raise NotImplementedError("Converting the audio files failed, make sure `ffmpeg` is installed in your machine and added to PATH.")
+    else:
+        new_filename = file_name
+    with soundfile.SoundFile(new_filename) as sound_file:
         X = sound_file.read(dtype="float32")
         sample_rate = sound_file.samplerate
         if chroma or contrast:

@@ -17,10 +17,11 @@ def convert_audio(audio_path, target_path, remove=False):
                 remove (bool): whether to remove the old file after converting
         Note that this function requires ffmpeg installed in your system."""
 
-    os.system(f"ffmpeg -i {audio_path} -ac 1 -ar 16000 {target_path}")
+    v = os.system(f"ffmpeg -i {audio_path} -ac 1 -ar 16000 {target_path}")
     # os.system(f"ffmpeg -i {audio_path} -ac 1 {target_path}")
     if remove:
         os.remove(audio_path)
+    return v
 
 
 def convert_audios(path, target_path, remove=False):
