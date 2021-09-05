@@ -103,6 +103,7 @@ print("Prediction:", rec.predict("data/tess_ravdess/validation/Actor_25/25_01_01
 Prediction: neutral
 Prediction: sad
 ```
+You can pass any audio file, if it's not in the appropriate format (16000Hz and mono channel), then it'll be automatically converted, make sure you have `ffmpeg` installed in your system and added to *PATH*.
 ## Example 2: Using RNNs for 5 Emotions
 ```python
 from deep_emotion_recognition import DeepEmotionRecognizer
@@ -144,6 +145,45 @@ true_neutral         3.846154       8.974360          82.051285      2.564103   
 true_ps              2.564103       0.000000           1.282051     83.333328        12.820514
 true_happy          20.512821       2.564103           2.564103      2.564103        71.794876
 ```
+## Example 3: Not Passing any Model and Removing the Custom Dataset
+Below code initializes `EmotionRecognizer` with 3 chosen emotions while removing Custom dataset, and setting `balance` to `False`:
+```python
+from emotion_recognition import EmotionRecognizer
+# initialize instance, this will take a bit the first time executed
+# as it'll extract the features and calls determine_best_model() automatically
+# to load the best performing model on the picked dataset
+rec = EmotionRecognizer(emotions=["angry", "neutral", "sad"], balance=False, verbose=1, custom_db=False)
+# it will be trained, so no need to train this time
+# get the accuracy on the test set
+print(rec.confusion_matrix())
+# predict angry audio sample
+prediction = rec.predict('data/validation/Actor_10/03-02-05-02-02-02-10_angry.wav')
+print(f"Prediction: {prediction}")
+```
+**Output:**
+```
+[+] Best model determined: RandomForestClassifier with 93.454% test accuracy
+
+              predicted_angry  predicted_neutral  predicted_sad
+true_angry          98.275864           1.149425       0.574713
+true_neutral         0.917431          88.073395      11.009174
+true_sad             6.250000           1.875000      91.875000
+
+Prediction: angry
+```
+You can print the number of samples on each class:
+```python
+rec.get_samples_by_class()
+```
+**Output:**
+```
+         train  test  total
+angry      910   174   1084
+neutral    650   109    759
+sad        862   160   1022
+total     2422   443   2865
+```
+In this case, the dataset is only from TESS and RAVDESS, and not balanced, you can pass `True` to `balance` on the `EmotionRecognizer` instance to balance the data.
 ## Algorithms Used
 This repository can be used to build machine learning classifiers as well as regressors for the case of 3 emotions {'sad': 0, 'neutral': 1, 'happy': 2} and the case of 5 emotions {'angry': 1, 'sad': 2, 'neutral': 3, 'ps': 4, 'happy': 5}
 ### Classifiers
