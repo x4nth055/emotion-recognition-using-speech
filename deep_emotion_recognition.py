@@ -69,7 +69,7 @@ class DeepEmotionRecognizer(EmotionRecognizer):
                 regression.
         """
         # init EmotionRecognizer
-        super().__init__(None, **kwargs)
+        super().__init__(**kwargs)
 
         self.n_rnn_layers = kwargs.get("n_rnn_layers", 2)
         self.n_dense_layers = kwargs.get("n_dense_layers", 2)
@@ -383,9 +383,10 @@ class DeepEmotionRecognizer(EmotionRecognizer):
 
         return index
 
-    def determine_best_model(self, train=True):
+    def determine_best_model(self):
         # TODO
-        raise TypeError("This method isn't supported yet for deep nn")
+        # raise TypeError("This method isn't supported yet for deep nn")
+        pass
 
 
 if __name__ == "__main__":
