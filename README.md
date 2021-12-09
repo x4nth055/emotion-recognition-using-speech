@@ -1,5 +1,8 @@
 # Speech Emotion Recognition
 ## Introduction
+<a href="https://replicate.ai/x4nth055/emotion-recognition-using-speech"><img src="https://img.shields.io/static/v1?label=Replicate&message=Demo and Docker Image&color=darkgreen" height=20></a>
+
+
 - This repository handles building and training Speech Emotion Recognition System.
 - The basic idea behind this tool is to build and train/test a suited machine learning ( as well as deep learning ) algorithm that could recognize and detects human emotions from speech.
 - This is useful for many industry fields such as making product recommendations, affective computing, etc.
@@ -39,7 +42,7 @@ Feature extraction is the main part of the speech emotion recognition system. It
 
 In this repository, we have used the most used features that are available in [librosa](https://github.com/librosa/librosa) library including:
 - [MFCC](https://en.wikipedia.org/wiki/Mel-frequency_cepstrum)
-- Chromagram 
+- Chromagram
 - MEL Spectrogram Frequency (mel)
 - Contrast
 - Tonnetz (tonal centroid features)
