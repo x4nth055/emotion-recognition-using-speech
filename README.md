@@ -121,7 +121,7 @@ print(f"Prediction: {prediction}")
 ```
 **Output:**
 ```
-0.7948717948717948
+0.7717948717948718
 Prediction: angry
 ```
 Predicting probabilities is also possible (for classification ofc):
@@ -130,7 +130,7 @@ print(deeprec.predict_proba("data/emodb/wav/16a01Wb.wav"))
 ```
 **Output:**
 ```
-{'angry': 0.8502438, 'sad': 1.15252915e-05, 'neutral': 8.986728e-05, 'ps': 0.14671412, 'happy': 0.0029406736}
+{'angry': 0.99878675, 'sad': 0.0009922335, 'neutral': 7.959707e-06, 'ps': 0.00021298956, 'happy': 8.3598025e-08}
 ```
 ### Confusion Matrix
 ```python
@@ -139,11 +139,11 @@ print(deeprec.confusion_matrix(percentage=True, labeled=True))
 **Output:**
 ```
               predicted_angry  predicted_sad  predicted_neutral  predicted_ps  predicted_happy
-true_angry          92.307693       0.000000           1.282051      2.564103         3.846154
-true_sad            12.820514      67.948715           3.846154      6.410257         8.974360
-true_neutral         3.846154       8.974360          82.051285      2.564103         2.564103
-true_ps              2.564103       0.000000           1.282051     83.333328        12.820514
-true_happy          20.512821       2.564103           2.564103      2.564103        71.794876
+true_angry          80.769226       7.692308           3.846154      5.128205         2.564103
+true_sad            12.820514      73.076920           3.846154      6.410257         3.846154
+true_neutral         1.282051       1.282051          79.487183      1.282051        16.666668
+true_ps             10.256411       3.846154           1.282051     79.487183         5.128205
+true_happy           5.128205       8.974360           7.692308      8.974360        69.230774
 ```
 ## Example 3: Not Passing any Model and Removing the Custom Dataset
 Below code initializes `EmotionRecognizer` with 3 chosen emotions while removing Custom dataset, and setting `balance` to `False`:

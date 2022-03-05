@@ -267,9 +267,11 @@ class DeepEmotionRecognizer(EmotionRecognizer):
     def predict(self, audio_path):
         feature = extract_feature(audio_path, **self.audio_config).reshape((1, 1, self.input_length))
         if self.classification:
-            return self.int2emotions[self.model.predict_classes(feature)[0][0]]
+            prediction = self.model.predict(feature)
+            prediction = np.argmax(np.squeeze(prediction))
+            return self.int2emotions[prediction]
         else:
-            return self.model.predict(feature)[0][0][0]
+            return np.squeeze(self.model.predict(feature))
 
     def predict_proba(self, audio_path):
         if self.classification:
@@ -287,7 +289,8 @@ class DeepEmotionRecognizer(EmotionRecognizer):
     def test_score(self):
         y_test = self.y_test[0]
         if self.classification:
-            y_pred = self.model.predict_classes(self.X_test)[0]
+            y_pred = self.model.predict(self.X_test)[0]
+            y_pred = [np.argmax(y, out=None, axis=None) for y in y_pred]
             y_test = [np.argmax(y, out=None, axis=None) for y in y_test]
             return accuracy_score(y_true=y_test, y_pred=y_pred)
         else:
@@ -297,7 +300,8 @@ class DeepEmotionRecognizer(EmotionRecognizer):
     def train_score(self):
         y_train = self.y_train[0]
         if self.classification:
-            y_pred = self.model.predict_classes(self.X_train)[0]
+            y_pred = self.model.predict(self.X_train)[0]
+            y_pred = [np.argmax(y, out=None, axis=None) for y in y_pred]
             y_train = [np.argmax(y, out=None, axis=None) for y in y_train]
             return accuracy_score(y_true=y_train, y_pred=y_pred)
         else:
@@ -308,7 +312,8 @@ class DeepEmotionRecognizer(EmotionRecognizer):
         """Compute confusion matrix to evaluate the test accuracy of the classification"""
         if not self.classification:
             raise NotImplementedError("Confusion matrix works only when it is a classification problem")
-        y_pred = self.model.predict_classes(self.X_test)[0]
+        y_pred = self.model.predict(self.X_test)[0]
+        y_pred = np.array([ np.argmax(y, axis=None, out=None) for y in y_pred])
         # invert from keras.utils.to_categorical
         y_test = np.array([ np.argmax(y, axis=None, out=None) for y in self.y_test[0] ])
         matrix = confusion_matrix(y_test, y_pred, labels=[self.emotions2int[e] for e in self.emotions]).astype(np.float32)
