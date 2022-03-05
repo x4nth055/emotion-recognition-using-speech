@@ -79,7 +79,7 @@ In order to determine the best model, you can by:
 ```python
 # loads the best estimators from `grid` folder that was searched by GridSearchCV in `grid_search.py`,
 # and set the model to the best in terms of test score, and then train it
-rec.determine_best_model(train=True)
+rec.determine_best_model()
 # get the determined sklearn model name
 print(rec.model.__class__.__name__, "is the best")
 # get the test accuracy score for the best estimator
