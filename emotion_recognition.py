@@ -130,15 +130,15 @@ class EmotionRecognizer:
             if self.emodb_name in train_csv_file:
                 write_emodb_csv(self.emotions, train_name=train_csv_file, test_name=test_csv_file, verbose=self.verbose)
                 if self.verbose:
-                    print("[+] Writed EMO-DB CSV File")
+                    print("[+] Generated EMO-DB CSV File")
             elif self.tess_ravdess_name in train_csv_file:
                 write_tess_ravdess_csv(self.emotions, train_name=train_csv_file, test_name=test_csv_file, verbose=self.verbose)
                 if self.verbose:
-                    print("[+] Writed TESS & RAVDESS DB CSV File")
+                    print("[+] Generated TESS & RAVDESS DB CSV File")
             elif self.custom_db_name in train_csv_file:
                 write_custom_csv(emotions=self.emotions, train_name=train_csv_file, test_name=test_csv_file, verbose=self.verbose)
                 if self.verbose:
-                    print("[+] Writed Custom DB CSV File")
+                    print("[+] Generated Custom DB CSV File")
 
     def load_data(self):
         """
