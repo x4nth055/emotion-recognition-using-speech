@@ -93,10 +93,10 @@ Test Score: 0.8958333333333334
 ### Predicting
 Just pass an audio path to the `rec.predict()` method as shown below:
 ```python
-# this is a neutral speech from emo-db
+# this is a neutral speech from emo-db from the testing set
 print("Prediction:", rec.predict("data/emodb/wav/15a04Nc.wav"))
-# this is a sad speech from TESS
-print("Prediction:", rec.predict("data/tess_ravdess/validation/Actor_25/25_01_01_01_mob_sad.wav"))
+# this is a sad speech from TESS from the testing set
+print("Prediction:", rec.predict("data/validation/Actor_25/25_01_01_01_back_sad.wav"))
 ```
 **Output:**
 ```
