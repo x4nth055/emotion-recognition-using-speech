@@ -249,3 +249,16 @@ plot_histograms(classifiers=True)
 
 <img src="images/Figure.png">
 <p align="center">A Histogram shows different algorithms metric results on different data sizes as well as time consumed to train/predict.</p>
+
+## Citation
+
+```bibtex
+@software{speech_emotion_recognition_2019,
+  author       = {Abdeladim Fadheli},
+  title        = {Speech Emotion Recognition},
+  version      = {1.0.0},
+  year         = {2019},
+  publisher    = {GitHub},
+  journal      = {GitHub repository},
+  url          = {https://github.com/x4nth055/emotion-recognition-using-speech}
+}

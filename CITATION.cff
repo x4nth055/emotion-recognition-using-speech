@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+authors:
+  - family-names: Abdeladim
+    given-names: Fadheli
+title: Speech Emotion Recognition
+version: 1.0.0
+date-released: 2019-04-28
+abstract: "This repository presents a comprehensive SER framework that employs various machine learning and deep learning techniques to accurately detect and classify human emotions from speech. The framework utilizes four datasets, including RAVDESS, TESS, EMO-DB, and a custom dataset, comprising a diverse range of emotions such as neutral, calm, happy, sad, angry, fear, disgust, pleasant surprise, and boredom. Feature extraction is performed using widely adopted audio features, including MFCC, Chromagram, MEL Spectrogram Frequency, Contrast, and Tonnetz. The repository also supports grid search for hyperparameter tuning and offers a range of classifiers and regressors such as SVC, RandomForest, GradientBoosting, KNeighbors, MLP, Bagging, and Recurrent Neural Networks. The developed SER system demonstrates promising accuracy in emotion classification, making it a valuable tool for researchers and practitioners in the field of affective computing and related domains."
+repository-code: https://github.com/x4nth055/emotion-recognition-using-speech
+license: MIT
