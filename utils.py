@@ -90,7 +90,7 @@ def extract_feature(file_name, **kwargs):
             chroma = np.mean(librosa.feature.chroma_stft(S=stft, sr=sample_rate).T,axis=0)
             result = np.hstack((result, chroma))
         if mel:
-            mel = np.mean(librosa.feature.melspectrogram(X, sr=sample_rate).T,axis=0)
+            mel = np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T,axis=0)
             result = np.hstack((result, mel))
         if contrast:
             contrast = np.mean(librosa.feature.spectral_contrast(S=stft, sr=sample_rate).T,axis=0)
