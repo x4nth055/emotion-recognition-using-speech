@@ -61,6 +61,7 @@ def extract_feature(file_name, **kwargs):
     mel = kwargs.get("mel")
     contrast = kwargs.get("contrast")
     tonnetz = kwargs.get("tonnetz")
+    result = np.array([])
     try:
         with soundfile.SoundFile(file_name) as sound_file:
             pass
@@ -82,7 +83,6 @@ def extract_feature(file_name, **kwargs):
         sample_rate = sound_file.samplerate
         if chroma or contrast:
             stft = np.abs(librosa.stft(X))
-        result = np.array([])
         if mfcc:
             mfccs = np.mean(librosa.feature.mfcc(y=X, sr=sample_rate, n_mfcc=40).T, axis=0)
             result = np.hstack((result, mfccs))
@@ -90,7 +90,9 @@ def extract_feature(file_name, **kwargs):
             chroma = np.mean(librosa.feature.chroma_stft(S=stft, sr=sample_rate).T,axis=0)
             result = np.hstack((result, chroma))
         if mel:
-            mel = np.mean(librosa.feature.melspectrogram(X, sr=sample_rate).T,axis=0)
+            # librosa.feature.melspectrogram function needs to determine which param the input X is.
+            # Here I add "y = X" to fix the bug which make extract_feature didn't work
+            mel = np.mean(librosa.feature.melspectrogram(y = X, sr=sample_rate).T,axis=0)
             result = np.hstack((result, mel))
         if contrast:
             contrast = np.mean(librosa.feature.spectral_contrast(S=stft, sr=sample_rate).T,axis=0)
